@@ -174,6 +174,7 @@ class Body:
     @ti.kernel
     def init_nodes_color(self):
         """初始化顶点颜色
+        TODO: 更改成根据colormap类初始化顶点颜色
 
         :return:
         """
@@ -183,11 +184,12 @@ class Body:
 
     @ti.kernel
     def update_color_Vm(self):
-        """使用电压更新顶点颜色
+        """使用电压更新顶点颜色,
+        TODO: 使用colormap类指定顶点颜色的colormap
 
         :return:
         """
 
         for i in self.nodes_color:
             # self.nodes_color[i] = tm.vec3([self.Vm[i], 0.0, 1.0 - self.Vm[i]])
-            self.nodes_color[i] = colormap.my_colormap(self.Vm[i])
+            self.nodes_color[i] = colormap.red_bule_linear(self.Vm[i])
