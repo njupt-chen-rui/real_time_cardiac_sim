@@ -3,7 +3,7 @@ res/
 
 # pycharm和python的配置文件
 .idea
-*/_pycache_
+__pycache__/
 */imgui.ini
 
 # c++的配置文件
