@@ -3,7 +3,7 @@ import taichi.math as tm
 
 
 @ti.data_oriented
-class colormap:
+class Colormap:
     """用于实现colormap的类
     """
     def __init__(self):

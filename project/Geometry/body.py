@@ -2,7 +2,7 @@ import taichi as ti
 import taichi.math as tm
 import numpy as np
 import project.Geometry.geometrytool as geo_tool
-import project.tool.colormap as colormap
+import project.tool.colormap as tool_colormap
 
 
 @ti.data_oriented
@@ -21,7 +21,7 @@ class Body:
         Vm: 顶点电压
     """
 
-    def __init__(self, nodes_np: np.ndarray, elements_np: np.ndarray,
+    def __init__(self, colormap: tool_colormap.Colormap, nodes_np: np.ndarray, elements_np: np.ndarray,
                  tet_fiber_np: np.ndarray, tet_sheet_np: np.ndarray, tet_normal_np: np.ndarray,
                  num_tet_set_np, tet_set_np: np.ndarray,
                  density=1120.0) -> None:
@@ -73,8 +73,9 @@ class Body:
         self.volume = ti.field(float, self.num_elements)
         self.init_volume()
 
-        # 顶点电压
+        # 顶点电压, 此处电压采用归一化形式, 实际电压 = 100.0 * Vm - 80.0
         self.Vm = ti.field(float, shape=self.num_nodes)
+        self.init_Vm()
 
         # 主动应力
         self.tet_Ta = ti.field(float, shape=self.num_elements)
@@ -97,7 +98,8 @@ class Body:
         self.surfaces = ti.field(ti.i32, shape=(surfaces.shape[0] * surfaces.shape[1]))
         self.surfaces.from_numpy(surfaces.reshape(-1))
 
-        # 每个顶点的颜色
+        # 顶点颜色
+        self.colormap = colormap
         self.nodes_color = ti.Vector.field(3, float, shape=self.num_nodes)
         self.init_nodes_color()
 
@@ -141,6 +143,16 @@ class Body:
             self.volume[i] = ti.abs(self.Dm[i].determinant()) / 6.0
 
     @ti.kernel
+    def init_Vm(self):
+        """初始化顶点电压
+
+        :return:
+        """
+
+        for i in self.nodes:
+            self.Vm[i] = 0.0
+
+    @ti.kernel
     def init_Ta(self):
         """初始化主动张力Ta
 
@@ -180,7 +192,8 @@ class Body:
         """
 
         for i in self.nodes_color:
-            self.nodes_color[i] = tm.vec3(1.0, 0.5, 0.5)
+            # self.nodes_color[i] = tm.vec3(1.0, 0.5, 0.5)
+            self.nodes_color[i] = self.colormap.get_rgb(self.Vm[i])
 
     @ti.kernel
     def update_color_Vm(self):
