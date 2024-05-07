@@ -3,11 +3,8 @@
 """
 
 import taichi as ti
-import numpy as np
-import project.Geometry.body as geo_body
-import project.tool.colormap
 from project.data.cube import meshData
-import project.Geometry.read_geo as read_geo
+import project.Geometry as geo
 
 
 def test_geometry():
@@ -16,7 +13,7 @@ def test_geometry():
     :return:
     """
 
-    body = read_geo.read_body(meshData)
+    body = geo.read_body(meshData)
     # 设置窗口参数
     windowLength = 1024
     lengthScale = min(windowLength, 512)

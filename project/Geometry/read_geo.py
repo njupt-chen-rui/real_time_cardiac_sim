@@ -1,7 +1,6 @@
 import numpy as np
-import project.Geometry.body as geo_body
-import project.tool.colormap
-# from project.data.cube import meshData
+import project.Geometry as geo
+import project.tool as tool
 
 
 def read_body(meshData):
@@ -30,10 +29,10 @@ def read_body(meshData):
     # tet_set
     tet_set_np = np.array(meshData['tet_set'], dtype=int)
     # colormap
-    test_colormap = project.tool.colormap.Colormap()
+    colormap = tool.Colormap()
 
-    Body_ = geo_body.Body(
-                 colormap=test_colormap,
+    body = geo.Body(
+                 colormap=colormap,
                  nodes_np=pos_np,
                  elements_np=tet_np,
                  tet_fiber_np=fiber_tet_np,
@@ -43,4 +42,4 @@ def read_body(meshData):
                  tet_set_np=tet_set_np
                  )
 
-    return Body_
+    return body

@@ -1,8 +1,8 @@
 import taichi as ti
 import taichi.math as tm
 import numpy as np
-import project.Geometry.geometrytool as geo_tool
-import project.tool.colormap as tool_colormap
+import project.Geometry as geo
+import project.tool as tool
 
 
 @ti.data_oriented
@@ -21,7 +21,7 @@ class Body:
         Vm: 顶点电压
     """
 
-    def __init__(self, colormap: tool_colormap.Colormap, nodes_np: np.ndarray, elements_np: np.ndarray,
+    def __init__(self, colormap: tool.Colormap, nodes_np: np.ndarray, elements_np: np.ndarray,
                  tet_fiber_np: np.ndarray, tet_sheet_np: np.ndarray, tet_normal_np: np.ndarray,
                  num_tet_set_np, tet_set_np: np.ndarray,
                  density=1120.0) -> None:
@@ -94,7 +94,8 @@ class Body:
         # TODO:边界
 
         # 计算网格表面, 用于辅助可视化
-        surfaces = geo_tool.get_surface_from_tet(nodes=nodes_np, elements=elements_np)
+        # surfaces = geo_tool.get_surface_from_tet(nodes=nodes_np, elements=elements_np)
+        surfaces = geo.get_surface_from_tet(nodes=nodes_np, elements=elements_np)
         self.surfaces = ti.field(ti.i32, shape=(surfaces.shape[0] * surfaces.shape[1]))
         self.surfaces.from_numpy(surfaces.reshape(-1))
 
@@ -186,7 +187,6 @@ class Body:
     @ti.kernel
     def init_nodes_color(self):
         """初始化顶点颜色
-        TODO: 更改成根据colormap类初始化顶点颜色
 
         :return:
         """
@@ -197,8 +197,7 @@ class Body:
 
     @ti.kernel
     def update_color_Vm(self):
-        """使用电压更新顶点颜色,
-        TODO: 使用colormap类指定顶点颜色的colormap
+        """使用电压更新顶点颜色, 颜色类型由colormap指定
 
         :return:
         """
@@ -206,5 +205,3 @@ class Body:
         for i in self.nodes_color:
             # self.nodes_color[i] = tm.vec3([self.Vm[i], 0.0, 1.0 - self.Vm[i]])
             self.nodes_color[i] = self.colormap.get_rgb(self.Vm[i])
-
-
