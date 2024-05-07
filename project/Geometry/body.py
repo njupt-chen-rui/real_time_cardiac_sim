@@ -150,7 +150,7 @@ class Body:
         """
 
         for i in self.nodes:
-            self.Vm[i] = 0.0
+            self.Vm[i] = 1.0
 
     @ti.kernel
     def init_Ta(self):
@@ -205,4 +205,6 @@ class Body:
 
         for i in self.nodes_color:
             # self.nodes_color[i] = tm.vec3([self.Vm[i], 0.0, 1.0 - self.Vm[i]])
-            self.nodes_color[i] = colormap.red_bule_linear(self.Vm[i])
+            self.nodes_color[i] = self.colormap.get_rgb(self.Vm[i])
+
+

@@ -15,6 +15,7 @@ class Colormap:
 
     @ti.func
     def get_rgb(self, input_val: float) -> tm.vec3:
+        val = 0.0
         if input_val < 0.0:
             val = 0.0
         elif input_val > 1.0:
@@ -22,6 +23,7 @@ class Colormap:
         else:
             val = input_val
 
+        res = tm.vec3([0, 0, 0])
         if self.type == "red_bule_linear":
             res = red_bule_linear(val)
         else:
