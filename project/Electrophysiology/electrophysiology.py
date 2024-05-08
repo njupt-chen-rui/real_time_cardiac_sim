@@ -391,12 +391,18 @@ class Electrophysiology:
 
     @ti.kernel
     def cg_run_iteration(self, dt: float, delta: float) -> float:
+        """共轭梯度法迭代过程
+
+        :param dt: 时间步长
+        :param delta: 共轭梯度法迭代中delta的初值
+        :return: delta_new
         """
-        共轭梯度法迭代过程
-        """
+
         delta_new = delta
+
         # q = A @ d
         self.A_mult_x(dt, self.cg_Ad, self.cg_d)
+
         # alpha = delta_new / d.dot(q)
         alpha = delta_new / self.dot(self.cg_d, self.cg_Ad)
 
@@ -405,18 +411,22 @@ class Electrophysiology:
             self.cg_x[i] += alpha * self.cg_d[i]
             # r = b - A @ x || r = r - alpha * q
             self.cg_r[i] -= alpha * self.cg_Ad[i]
+
         delta_old = delta_new
         delta_new = self.dot(self.cg_r, self.cg_r)
         beta = delta_new / delta_old
+
         for i in range(self.body.num_nodes):
             # d = r + beta * d
             self.cg_d[i] = self.cg_r[i] + beta * self.cg_d[i]
+
         return delta_new
 
     @ti.kernel
     def cgUpdateVm(self):
-        """
-        依据共轭梯度法求解结果更新电压值
+        """依据共轭梯度法求解结果更新电压值
+
+        :return:
         """
         for i in self.Vm:
             self.Vm[i] = self.cg_x[i]
