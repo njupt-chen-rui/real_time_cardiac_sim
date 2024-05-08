@@ -1,6 +1,6 @@
 import taichi as ti
 import numpy as np
-from
+from project.Geometry import Body
 
 
 @ti.data_oriented
@@ -9,7 +9,7 @@ class Selector:
     粒子选择器。使用鼠标左键在屏幕上绘制一个矩形，然后选择矩形中的粒子。
     """
 
-    def __init__(self, camera, window, particle_pos, geo: body.Body) -> None:
+    def __init__(self, camera, window, particle_pos, geo: Body) -> None:
         """
         Args:
 
