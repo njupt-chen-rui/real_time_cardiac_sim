@@ -1,0 +1,2 @@
+from project.Electrophysiology.electrophysiology import Electrophysiology_Aliec_Panfilov
+from project.Electrophysiology.electrophysiology import Electrophysiology_FitzHugh_Nagumo

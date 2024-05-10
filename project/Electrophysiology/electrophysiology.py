@@ -5,7 +5,7 @@ from project.Geometry import Body
 
 @ti.data_oriented
 class Electrophysiology:
-    """用于仿真心肌组织的电活动的类
+    """用于仿真心肌组织的电活动的基类，实现了扩散项的计算以及反应项的分解，具体反应项模型由子类控制
 
     属性:
         Vm: 顶点电压
@@ -437,11 +437,16 @@ class Electrophysiology_Aliec_Panfilov(Electrophysiology):
     """
     用于仿真心肌组织的电活动的类，其细胞级模型采用Aliec_Panfilov
     """
+
     def __init__(self, body: Body):
+        """初始化Electrophysiology_Aliec_Panfilov类
+
+        :param body: 物体的几何属性
         """
-        初始化Electrophysiology_Aliec_Panfilov类
-        """
+
+        # 父类Electrophysiology的构造方法
         super(Electrophysiology_Aliec_Panfilov, self).__init__(body)
+
         # Aliec_Panfilov 模型参数
         self.k = 8.0
         self.a = 0.01
@@ -473,3 +478,48 @@ class Electrophysiology_Aliec_Panfilov(Electrophysiology):
         self.w[i] = self.w[i] * tm.exp(-1.0 * dt * epsilon_Vm_w) + (
                 self.k * self.Vm[i] * (1.0 + self.b - self.Vm[i])) * (
                                1.0 - tm.exp(-1.0 * dt * epsilon_Vm_w))
+
+
+@ti.data_oriented
+class Electrophysiology_FitzHugh_Nagumo(Electrophysiology):
+    """用于仿真心肌组织的电活动的类，其细胞级模型采用FitzHugh_Nagumo模型
+
+    """
+
+    def __init__(self, body: Body):
+        """初始化 Electrophysiology_FitzHugh_Nagumo 类
+
+        :param body: 物体的几何属性
+        """
+
+        # 父类Electrophysiology的构造方法
+        super(Electrophysiology_FitzHugh_Nagumo, self).__init__(body)
+
+        # FitzHugh_Nagumo 模型参数
+        self.a = 0.1
+        self.epsilon_0 = 0.01
+        self.beta = 0.5
+        self.gamma = 1.0
+        self.sigma = 0.0
+        self.C_m = 1.0
+
+    @ti.func
+    def calculate_Rv(self, i, dt):
+        """
+        dV_m/dt = 1/C_m * [V_m(V_m + aV_m - V_m^2) - w] - a/C_m * V_m
+        y = V_m, q(y,t) = 1/C_m * [V_m(V_m + aV_m - V_m^2) - w], p(y,t) = a/C_m
+        """
+        self.Vm[i] = self.Vm[i] * tm.exp(-1.0 * dt * (self.a / self.C_m)) + (
+                1.0 / self.C_m * (self.Vm[i] * self.Vm[i] * (1.0 + self.a - self.Vm[i]) - self.w[i])) / (
+                                 self.a / self.C_m) * (
+                                 1.0 - tm.exp(-1.0 * dt * (self.a / self.C_m)))
+
+    @ti.func
+    def calculate_Rw(self, i, dt):
+        """
+        dw/dt = epsilon_0 * (beta * V_m - sigma) - epsilon_0 * gamma * w
+        y = w, q(y,t) = epsilon_0 * (beta * V_m - sigma), p(y,t) = epsilon_0 * gamma
+        """
+        self.w[i] = self.w[i] * tm.exp(-1.0 * dt * self.epsilon_0 * self.gamma) + (
+                self.epsilon_0 * (self.beta * self.Vm[i] - self.sigma) / (self.epsilon_0 * self.gamma)) * (
+                            1.0 - tm.exp(-1.0 * dt * (self.epsilon_0 * self.gamma)))
