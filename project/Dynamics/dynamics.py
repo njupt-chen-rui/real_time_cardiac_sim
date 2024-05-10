@@ -502,15 +502,17 @@ class Dynamics_XPBD_SNH_Active:
             eid = elem[elemNr][i]
             pos[eid] += g[elemNr, i] * (dlambda * invMass[eid])
 
-    # @ti.kernel
-    # def solve_dirichlet_boundary(self):
-    #     """
-    #     Dirichlet边界条件处理
-    #     """
-    #     for i in self.pos:
-    #         if self.bou_dirichlet[i] == 1:
-    #             self.pos[i][1] = self.prevPos[i][1]
-    #             # self.pos[i] = self.prevPos[i]
+    @ti.kernel
+    def solve_dirichlet_boundary(self):
+        """Dirichlet边界条件处理
+
+        :return:
+        """
+
+        for i in self.pos:
+            if self.bou_dirichlet[i] == 1:
+                self.pos[i][1] = self.prevPos[i][1]
+                # self.pos[i] = self.prevPos[i]
 
     @ti.kernel
     def postSolve(self):
