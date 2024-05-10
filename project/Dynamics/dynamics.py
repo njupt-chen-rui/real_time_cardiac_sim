@@ -11,10 +11,10 @@ class Dynamics_XPBD_SNH_Active:
         - 被动材料模型: Stable Neo-Hookean模型
         - 附带主动力
     属性:
-        num_pts_np: 每个集合中四面体的个数
-        dt: 时间步长
-        numSubsteps: 子步数量
-        numPosIters: 迭代次数
+        - num_pts_np: 每个集合中四面体的个数
+        - dt: 时间步长
+        - numSubsteps: 子步数量
+        - numPosIters: 迭代次数
     """
 
     def __init__(self, body: Body, num_pts_np: np.ndarray,
@@ -92,9 +92,11 @@ class Dynamics_XPBD_SNH_Active:
 
     @ti.kernel
     def init(self):
+        """动力学仿真类Dynamics_XPBD_SNH_Active的taichi field成员变量初始化
+
+        :return:
         """
-        动力学仿真类Dynamics_XPBD_SNH_Active的taichi field成员变量初始化
-        """
+
         # 速度初始化为0
         for i in self.vel:
             self.vel[i] = tm.vec3([0., 0., 0.])
@@ -117,23 +119,33 @@ class Dynamics_XPBD_SNH_Active:
         # TODO: 补充初始化
 
     def update(self):
+        """XPBD迭代更新
+
+        :return:
         """
-        XPBD迭代更新
-        """
+
         # self.update_Ta(self.dt)
         for _ in range(self.numSubsteps):
+            # 更新主动力
             self.update_Ta(self.h)
+            # XPBD子步更新
             self.sub_step()
 
     @ti.kernel
     def update_Ta(self, dt: float):
+        """更新主动张力Ta
+
+         按照时间步长更新顶点主动张力Ta，网格主动张力tet_Ta由ver_Ta加权得到
+
+        :param dt: 时间步长
+        :return:
         """
-        更新主动张力Ta
-        按照时间步长更新顶点主动张力Ta，网格主动张力tet_Ta由ver_Ta加权得到
-        """
+
         epsilon_0 = 1
         # epsilon_0 = 10
         k_Ta = 47.9  # kPa
+
+        # 更新顶点上的主动张力ver_Ta
         for i in self.pos:
             V = self.body.Vm[i]
             epsilon = 10 * epsilon_0
@@ -144,6 +156,7 @@ class Dynamics_XPBD_SNH_Active:
             Ta_new /= (1 + dt * epsilon)
             self.body.ver_Ta[i] = Ta_new
 
+        # 由顶点主动张力加权得到网格主动张力tet_Ta
         for i in self.elements:
             vid = tm.ivec4(0, 0, 0, 0)
             ver_mass = tm.vec4(0, 0, 0, 0)
@@ -157,19 +170,24 @@ class Dynamics_XPBD_SNH_Active:
                 self.tet_Ta[i] += ver_mass[j] / sum_mass * self.body.ver_Ta[vid[j]]
 
     def sub_step(self):
+        """子步过程
+
+        :return:
         """
-        子步过程
-        """
+
         self.preSolve()
         self.solve_Gauss_Seidel_GPU()
         self.postSolve()
 
     @ti.kernel
     def preSolve(self):
+        """XPBD迭代中每次约束更新的前处理
+
+        :return:
         """
-        XPBD迭代中每次约束更新的前处理
-        """
+
         pos, vel = ti.static(self.pos, self.vel)
+
         # 外力
         for i in self.f_ext:
             self.f_ext[i] = self.gravity
@@ -208,9 +226,11 @@ class Dynamics_XPBD_SNH_Active:
                 self.Lagrange_multiplier[i, j] = 0.0
 
     def solve_Gauss_Seidel_GPU(self):
+        """并行化的Gauss_Seidel迭代
+
+        :return:
         """
-        并行化的Gauss_Seidel迭代
-        """
+
         for _ in range(self.numPosIters):
             left, right = 0, 0
             for set_id in range(self.tol_tet_set):
@@ -227,7 +247,17 @@ class Dynamics_XPBD_SNH_Active:
 
     @ti.kernel
     def solve_elem_Gauss_Seidel_GPU(self, left: int, right: int):
+        """并行化的各个四面体中的Gauss Seidel迭代
+
+        :param left: 约束独立集合的左端点
+        :param right: 约束独立集合的右端点
+        :return:
+        """
+
+        # TODO: 添加各向异性子类
+
         pos, vel, tet, ir, g = ti.static(self.pos, self.vel, self.elements, self.body.DmInv, self.grads)
+
         for i in range(left, right):
             C = 0.0
             devCompliance = 1.0 * self.invMu
@@ -236,9 +266,11 @@ class Dynamics_XPBD_SNH_Active:
             for j in ti.static(range(4)):
                 id[j] = tet[i][j]
 
-            # 偏向能量：
-            # Psi = mu / 2 * (tr(F^T @ F) - 3.0)
-            # C = sqrt(tr(F^T @ F))
+            '''
+            偏向能量:
+                Psi = mu / 2 * (tr(F^T @ F) - 3.0)
+                C = sqrt(tr(F^T @ F))
+            '''
             v1 = pos[id[1]] - pos[id[0]]
             v2 = pos[id[2]] - pos[id[0]]
             v3 = pos[id[3]] - pos[id[0]]
@@ -254,9 +286,11 @@ class Dynamics_XPBD_SNH_Active:
             C = r_s
             self.applyToElem(i, C, devCompliance, 0)
 
-            # 静水能量
-            # Psi = lambda / 2 * (det(F) - 1.0 - mu / lambda)^2
-            # C = det(F) - 1.0 - mu / lambda
+            '''
+            静水能量:
+                Psi = lambda / 2 * (det(F) - 1.0 - mu / lambda)^2
+                C = det(F) - 1.0 - mu / lambda
+            '''
             v1 = pos[id[1]] - pos[id[0]]
             v2 = pos[id[2]] - pos[id[0]]
             v3 = pos[id[3]] - pos[id[0]]
@@ -294,9 +328,11 @@ class Dynamics_XPBD_SNH_Active:
             # 调整各向异性约束大小
             # self.applyToElem(i, C, volCompliance * 10000, 2)
 
-            # 主动应力：
-            # Psi = Ta / 2 * (f^T @ F^T @ F @ f - 1.0)
-            # C = sqrt(f^T @ F^T @ F @ f)
+            '''
+            主动应力:
+                Psi = Ta / 2 * (f^T @ F^T @ F @ f - 1.0)
+                C = sqrt(f^T @ F^T @ F @ f)
+            '''
             v1 = pos[id[1]] - pos[id[0]]
             v2 = pos[id[2]] - pos[id[0]]
             v3 = pos[id[3]] - pos[id[0]]
@@ -309,22 +345,28 @@ class Dynamics_XPBD_SNH_Active:
             C_inv = 1.0 / C
             dCadF = C_inv * F @ (f0.outer_product(f0))
             self.computedCdx(i, dCadF)
-
             if self.body.tet_Ta[i] > 0:
                 self.applyToElem(i, C, 1.0 / self.body.tet_Ta[i], 3)
 
     @ti.func
     def computedCdx(self, elemNr, dCdF):
+        """计算dC/dx导数，其是12*1的向量，即grads
+
+        :param elemNr: 四面体单元索引
+        :param dCdF: 约束 C 对形变梯度 F 的一阶偏导
+        :return:
         """
-        计算dC/dx导数，其是12*1的向量，即grads
-        """
+
         g = ti.static(self.grads)
+
         # PFPx是一个三阶张量，展平为9 * 12的矩阵，通过列向量计算dIdx
         PFPx = ti.Vector([0, 0, 0, 0, 0, 0, 0, 0, 0], float)
+
         # 向量化dIdF
         vec_dIdF = ti.Vector([dCdF[0, 0], dCdF[1, 0], dCdF[2, 0],
                               dCdF[0, 1], dCdF[1, 1], dCdF[2, 1],
                               dCdF[0, 2], dCdF[1, 2], dCdF[2, 2]], float)
+
         # 计算PFPx，参见章鱼书(course_dynamic_deformables)P180
         ir = ti.static(self.body.DmInv)
         m = ir[elemNr][0, 0]
@@ -432,9 +474,15 @@ class Dynamics_XPBD_SNH_Active:
 
     @ti.func
     def applyToElem(self, elemNr, C, compliance, cid):
+        """单个约束更新
+
+        :param elemNr: 四面体单元索引
+        :param C: 约束
+        :param compliance: 柔度
+        :param cid: 约束种类id
+        :return:
         """
-        单个约束更新
-        """
+
         g, pos, elem, h, invVol, invMass = ti.static(self.grads, self.pos, self.elements, self.h, self.invVol,
                                                      self.invMass)
         w = 0.0
@@ -466,10 +514,13 @@ class Dynamics_XPBD_SNH_Active:
 
     @ti.kernel
     def postSolve(self):
+        """XPBD迭代中每次约束更新的后处理
+
+        :return:
         """
-        XPBD迭代中每次约束更新的后处理
-        """
+
         pos, vel = ti.static(self.pos, self.vel)
+
         for i in pos:
             # 更新速度
             vel[i] = (pos[i] - self.prevPos[i]) / self.h
