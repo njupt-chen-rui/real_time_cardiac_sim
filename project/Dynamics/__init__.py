@@ -1,1 +1,2 @@
 from project.Dynamics.dynamics import Dynamics_XPBD_SNH_Active
+from project.Dynamics.dynamics import Dynamics_XPBD_SNH_Active_aniso

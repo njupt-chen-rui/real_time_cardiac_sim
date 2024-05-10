@@ -438,14 +438,14 @@ class Electrophysiology_Aliec_Panfilov(Electrophysiology):
     用于仿真心肌组织的电活动的类，其细胞级模型采用Aliec_Panfilov
     """
 
-    def __init__(self, body: Body):
+    def __init__(self, body: Body, sigma_f=1.1, sigma_s=1.0, sigma_n=1.0):
         """初始化Electrophysiology_Aliec_Panfilov类
 
         :param body: 物体的几何属性
         """
 
         # 父类Electrophysiology的构造方法
-        super(Electrophysiology_Aliec_Panfilov, self).__init__(body)
+        super(Electrophysiology_Aliec_Panfilov, self).__init__(body, sigma_f, sigma_s, sigma_n)
 
         # Aliec_Panfilov 模型参数
         self.k = 8.0

@@ -526,3 +526,141 @@ class Dynamics_XPBD_SNH_Active:
         for i in pos:
             # 更新速度
             vel[i] = (pos[i] - self.prevPos[i]) / self.h
+
+
+@ti.data_oriented
+class Dynamics_XPBD_SNH_Active_aniso(Dynamics_XPBD_SNH_Active):
+    """各向异性动力学仿真类
+        - 仿真方法: 基于位置的扩展动力学(XPBD)
+        - 被动材料模型: Stable Neo-Hookean模型
+        - 附带主动力
+        - 附加了各向异性
+    属性:
+        - num_pts_np: 每个集合中四面体的个数
+        - dt: 时间步长
+        - numSubsteps: 子步数量
+        - numPosIters: 迭代次数
+    """
+
+    def __init__(self, body: Body, num_pts_np: np.ndarray,
+                 dt=1. / 6. / 1.29, numSubsteps=1, numPosIters=1,
+                 Youngs_modulus=17000.0, Poisson_ratio=0.45,
+                 kappa=10.0):
+        """ Dynamics_XPBD_SNH_Active_aniso 类初始化
+
+        :param body: 物体的几何属性
+        :param num_pts_np: 约束独立集合数量
+        :param dt: 时间步长
+        :param numSubsteps: 子步数量
+        :param numPosIters: 迭代次数
+        :param Youngs_modulus: 杨氏模量
+        :param Poisson_ratio: 泊松比
+        """
+
+        # 父类 Dynamics_XPBD_SNH_Active 的构造方法
+        super(Dynamics_XPBD_SNH_Active_aniso, self).__init__(body, num_pts_np, dt, numSubsteps, numPosIters,
+                                                             Youngs_modulus, Poisson_ratio)
+
+        # 各向异性弹性参数
+        self.kappa = kappa
+        self.inv_kappa = 1.0 / kappa
+
+    @ti.kernel
+    def solve_elem_Gauss_Seidel_GPU(self, left: int, right: int):
+        """并行化的各个四面体中的Gauss Seidel迭代
+
+        :param left: 约束独立集合的左端点
+        :param right: 约束独立集合的右端点
+        :return:
+        """
+
+        pos, vel, tet, ir, g = ti.static(self.pos, self.vel, self.elements, self.body.DmInv, self.grads)
+
+        for i in range(left, right):
+            C = 0.0
+            devCompliance = 1.0 * self.invMu
+            volCompliance = 1.0 * self.invLa
+            id = tm.ivec4(0, 0, 0, 0)
+            for j in ti.static(range(4)):
+                id[j] = tet[i][j]
+
+            '''
+            偏向能量:
+                Psi = mu / 2 * (tr(F^T @ F) - 3.0)
+                C = sqrt(tr(F^T @ F))
+            '''
+            v1 = pos[id[1]] - pos[id[0]]
+            v2 = pos[id[2]] - pos[id[0]]
+            v3 = pos[id[3]] - pos[id[0]]
+            Ds = tm.mat3(v1, v2, v3)
+            Ds = Ds.transpose()
+            F = Ds @ ir[i]
+            r_s = tm.sqrt(v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2]
+                          + v2[0] * v2[0] + v2[1] * v2[1] + v2[2] * v2[2]
+                          + v3[0] * v3[0] + v3[1] * v3[1] + v3[2] * v3[2])
+            r_s_inv = 1.0 / r_s
+            dCDdF = r_s_inv * F
+            self.computedCdx(i, dCDdF)
+            C = r_s
+            self.applyToElem(i, C, devCompliance, 0)
+
+            '''
+            静水能量:
+                Psi = lambda / 2 * (det(F) - 1.0 - mu / lambda)^2
+                C = det(F) - 1.0 - mu / lambda
+            '''
+            v1 = pos[id[1]] - pos[id[0]]
+            v2 = pos[id[2]] - pos[id[0]]
+            v3 = pos[id[3]] - pos[id[0]]
+            Ds = tm.mat3(v1, v2, v3)
+            Ds = Ds.transpose()
+            F = Ds @ ir[i]
+            F_col0 = tm.vec3(F[0, 0], F[1, 0], F[2, 0])
+            F_col1 = tm.vec3(F[0, 1], F[1, 1], F[2, 1])
+            F_col2 = tm.vec3(F[0, 2], F[1, 2], F[2, 2])
+            dF0 = F_col1.cross(F_col2)
+            dF1 = F_col2.cross(F_col0)
+            dF2 = F_col0.cross(F_col1)
+            dCHdF = tm.mat3(dF0, dF1, dF2)
+            dCHdF = dCHdF.transpose()
+            self.computedCdx(i, dCHdF)
+            vol = F.determinant()
+            C = vol - 1.0 - volCompliance / devCompliance
+            self.applyToElem(i, C, volCompliance, 1)
+
+            '''
+            各向异性弹性应力：
+                Psi = kappa / 2.0 * (f^T @ F^T @ F @ f - 1.0)^2
+            '''
+            v1 = pos[id[1]] - pos[id[0]]
+            v2 = pos[id[2]] - pos[id[0]]
+            v3 = pos[id[3]] - pos[id[0]]
+            Ds = tm.mat3(v1, v2, v3)
+            Ds = Ds.transpose()
+            F = Ds @ ir[i]
+            f0 = self.body.tet_fiber[i]
+            f = F @ f0
+            C = f.dot(f) - 1
+            dI5dF = 2.0 * F @ (f0.outer_product(f0))
+            self.computedCdx(i, dI5dF)
+            self.applyToElem(i, C, self.inv_kappa, 2)
+
+            '''
+            主动应力:
+                Psi = Ta / 2 * (f^T @ F^T @ F @ f - 1.0)
+                C = sqrt(f^T @ F^T @ F @ f)
+            '''
+            v1 = pos[id[1]] - pos[id[0]]
+            v2 = pos[id[2]] - pos[id[0]]
+            v3 = pos[id[3]] - pos[id[0]]
+            Ds = tm.mat3(v1, v2, v3)
+            Ds = Ds.transpose()
+            F = Ds @ ir[i]
+            f0 = self.body.tet_fiber[i]
+            f = F @ f0
+            C = tm.sqrt(f.dot(f))
+            C_inv = 1.0 / C
+            dCadF = C_inv * F @ (f0.outer_product(f0))
+            self.computedCdx(i, dCadF)
+            if self.body.tet_Ta[i] > 0:
+                self.applyToElem(i, C, 1.0 / self.body.tet_Ta[i], 3)
