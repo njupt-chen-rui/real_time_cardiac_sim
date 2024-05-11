@@ -21,10 +21,9 @@ class Body:
         Vm: 顶点电压
     """
 
-    def __init__(self, colormap: tool.Colormap, nodes_np: np.ndarray, elements_np: np.ndarray,
-                 tet_fiber_np: np.ndarray, tet_sheet_np: np.ndarray, tet_normal_np: np.ndarray,
-                 num_tet_set_np, tet_set_np: np.ndarray,
-                 density=1120.0) -> None:
+    def __init__(self, colormap: tool.Colormap, nodes_np: np.ndarray, elements_np: np.ndarray, tet_fiber_np: np.ndarray,
+                 tet_sheet_np: np.ndarray, tet_normal_np: np.ndarray, num_tet_set_np, tet_set_np: np.ndarray,
+                 bou_tag_dirichlet_np: np.ndarray, bou_tag_neumann_np: np.ndarray, density=1120.0) -> None:
         """使用外界读入的numpy数组初始化Body类
 
         Args:
@@ -92,9 +91,14 @@ class Body:
         self.tet_set.from_numpy(tet_set_np)
 
         # TODO:边界
+        # dirichlet boundary condition
+        self.bou_tag_dirichlet = ti.field(int, shape=self.num_nodes)
+        self.bou_tag_dirichlet.from_numpy(bou_tag_dirichlet_np)
+        # neumann boundary condition
+        self.bou_tag_neumann = ti.field(int, shape=self.num_nodes)
+        self.bou_tag_neumann.from_numpy(bou_tag_neumann_np)
 
         # 计算网格表面, 用于辅助可视化
-        # surfaces = geo_tool.get_surface_from_tet(nodes=nodes_np, elements=elements_np)
         surfaces = geo.get_surface_from_tet(nodes=nodes_np, elements=elements_np)
         self.surfaces = ti.field(ti.i32, shape=(surfaces.shape[0] * surfaces.shape[1]))
         self.surfaces.from_numpy(surfaces.reshape(-1))

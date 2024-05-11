@@ -15,12 +15,17 @@ class Dynamics_XPBD_SNH_Active:
         - dt: 时间步长
         - numSubsteps: 子步数量
         - numPosIters: 迭代次数
+        - Youngs_modulus: 杨氏模量
+        - Poisson_ratio: 泊松比
+        - tag_dirichlet_all_dir: 开启全方向的dirichlet边界约束
+        - tag_dirichlet_y_dir: 开启y轴上的dirichlet边界约束
+        - tag_neumann: 开启neumann边界约束
+        - blood_pressure: 心脏腔室内血液压力大小
     """
 
-    def __init__(self, body: Body, num_pts_np: np.ndarray,
-                 dt=1. / 6. / 1.29, numSubsteps=1, numPosIters=1,
-                 Youngs_modulus=17000.0, Poisson_ratio=0.45,
-                 ):
+    def __init__(self, body: Body, num_pts_np: np.ndarray, dt=1. / 6. / 1.29, numSubsteps=1, numPosIters=1,
+                 Youngs_modulus=17000.0, Poisson_ratio=0.45, tag_dirichlet_all_dir=False, tag_dirichlet_y_dir=False,
+                 tag_neumann=False, blood_pressure=15.0):
         """Dynamics_XPBD_SNH_Active类初始化
 
         :param body: 物体的几何属性
@@ -89,6 +94,12 @@ class Dynamics_XPBD_SNH_Active:
         self.tol_tet_set = self.body.num_tet_set[None]
         self.num_pts = ti.field(int, shape=(self.tol_tet_set,))
         self.num_pts.from_numpy(num_pts_np)
+
+        # TODO: 边界条件的处理
+        # 是否开启边界约束
+        self.tag_dirichlet_all_dir = tag_dirichlet_all_dir
+        self.tag_dirichlet_y_dir = tag_dirichlet_y_dir
+        self.tag_neumann = tag_neumann
 
     @ti.kernel
     def init(self):
@@ -243,7 +254,10 @@ class Dynamics_XPBD_SNH_Active:
                 self.solve_elem_Gauss_Seidel_GPU(left, right)
 
         # TODO: Dirichlet边界条件处理
-        # self.solve_dirichlet_boundary()
+        if self.tag_dirichlet_all_dir:
+            self.solve_dirichlet_boundary_all_dir()
+        elif self.tag_dirichlet_y_dir:
+            self.solve_dirichlet_boundary_y_dir()
 
     @ti.kernel
     def solve_elem_Gauss_Seidel_GPU(self, left: int, right: int):
@@ -253,8 +267,6 @@ class Dynamics_XPBD_SNH_Active:
         :param right: 约束独立集合的右端点
         :return:
         """
-
-        # TODO: 添加各向异性子类
 
         pos, vel, tet, ir, g = ti.static(self.pos, self.vel, self.elements, self.body.DmInv, self.grads)
 
@@ -503,8 +515,19 @@ class Dynamics_XPBD_SNH_Active:
             pos[eid] += g[elemNr, i] * (dlambda * invMass[eid])
 
     @ti.kernel
-    def solve_dirichlet_boundary(self):
-        """Dirichlet边界条件处理
+    def solve_dirichlet_boundary_all_dir(self):
+        """Dirichlet边界条件处理(全方向)
+
+        :return:
+        """
+
+        for i in self.pos:
+            if self.bou_dirichlet[i] == 1:
+                self.pos[i] = self.prevPos[i]
+
+    @ti.kernel
+    def solve_dirichlet_boundary_y_dir(self):
+        """Dirichlet边界条件处理(y轴)
 
         :return:
         """
@@ -512,7 +535,6 @@ class Dynamics_XPBD_SNH_Active:
         for i in self.pos:
             if self.bou_dirichlet[i] == 1:
                 self.pos[i][1] = self.prevPos[i][1]
-                # self.pos[i] = self.prevPos[i]
 
     @ti.kernel
     def postSolve(self):
@@ -545,6 +567,8 @@ class Dynamics_XPBD_SNH_Active_aniso(Dynamics_XPBD_SNH_Active):
     def __init__(self, body: Body, num_pts_np: np.ndarray,
                  dt=1. / 6. / 1.29, numSubsteps=1, numPosIters=1,
                  Youngs_modulus=17000.0, Poisson_ratio=0.45,
+                 tag_dirichlet_all_dir=False, tag_dirichlet_y_dir=False, tag_neumann=False,
+                 blood_pressure=15.0,
                  kappa=10.0):
         """ Dynamics_XPBD_SNH_Active_aniso 类初始化
 
@@ -558,8 +582,12 @@ class Dynamics_XPBD_SNH_Active_aniso(Dynamics_XPBD_SNH_Active):
         """
 
         # 父类 Dynamics_XPBD_SNH_Active 的构造方法
-        super(Dynamics_XPBD_SNH_Active_aniso, self).__init__(body, num_pts_np, dt, numSubsteps, numPosIters,
-                                                             Youngs_modulus, Poisson_ratio)
+        super(Dynamics_XPBD_SNH_Active_aniso, self).__init__(body=body, num_pts_np=num_pts_np, dt=dt,
+                                                             numSubsteps=numSubsteps, numPosIters=numPosIters,
+                                                             Youngs_modulus=Youngs_modulus, Poisson_ratio=Poisson_ratio,
+                                                             tag_dirichlet_all_dir=tag_dirichlet_all_dir,
+                                                             tag_dirichlet_y_dir=tag_dirichlet_y_dir,
+                                                             tag_neumann=tag_neumann)
 
         # 各向异性弹性参数
         self.kappa = kappa

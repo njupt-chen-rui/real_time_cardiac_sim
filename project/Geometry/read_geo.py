@@ -28,6 +28,18 @@ def read_body(meshData):
     num_tet_set_np = np.array(meshData['num_tet_set'], dtype=int)[0]
     # tet_set
     tet_set_np = np.array(meshData['tet_set'], dtype=int)
+    # dirichlet bou
+    if meshData['bou_tag_dirichlet']:
+        bou_tag_dirichlet_np = np.array(meshData['bou_tag_dirichlet'], dtype=int)
+    else:
+        bou_tag_dirichlet_np = np.zeros(len(pos_np), dtype=int)
+
+    # neumann bou
+    if meshData['bou_tag_neumann']:
+        bou_tag_neumann_np = np.array(meshData['bou_tag_neumann'], dtype=int)
+    else:
+        bou_tag_neumann_np = np.zeros(len(pos_np), dtype=int)
+
     # colormap
     colormap = tool.Colormap()
 
@@ -39,7 +51,9 @@ def read_body(meshData):
                  tet_sheet_np=sheet_tet_np,
                  tet_normal_np=normal_tet_np,
                  num_tet_set_np=num_tet_set_np,
-                 tet_set_np=tet_set_np
+                 tet_set_np=tet_set_np,
+                 bou_tag_dirichlet_np=bou_tag_dirichlet_np,
+                 bou_tag_neumann_np=bou_tag_neumann_np
                  )
 
     return body

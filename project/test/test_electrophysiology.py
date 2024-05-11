@@ -1,19 +1,22 @@
 """
-测试 body.py
+测试 electrophysiology.py
 """
 
 import taichi as ti
 from project.data.cube import meshData
 import project.Geometry as geo
+import project.Electrophysiology as elec
 
 
-def test_geometry():
-    """ 测试Geometry模块的功能
+def test_electrophysiology():
+    """ 测试 Electrophysiology 模块的功能
 
     :return:
     """
 
     body = geo.read_body(meshData)
+    elec_sys = elec.Electrophysiology_Aliec_Panfilov(body)
+
     # 设置窗口参数
     windowLength = 1024
     lengthScale = min(windowLength, 512)
@@ -27,8 +30,8 @@ def test_geometry():
     camera = ti.ui.Camera()
 
     # initial camera position
-    camera.position(3.41801597, 1.65656349, 3.05081163)
-    camera.lookat(2.7179826, 1.31246826, 2.42507068)
+    camera.position(-0.95338696, 5.68768456, 19.50115459)
+    camera.lookat(-0.90405993, 5.36242057, 18.55681875)
     camera.up(0., 1., 0.)
 
     while window.running:
@@ -53,4 +56,4 @@ def test_geometry():
 
 if __name__ == "__main__":
     ti.init(arch=ti.cuda, default_fp=ti.f64)
-    test_geometry()
+    test_electrophysiology()

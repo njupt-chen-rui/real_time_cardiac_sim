@@ -1,19 +1,38 @@
 """
-测试 body.py
+测试 dynamics.py
 """
 
 import taichi as ti
+import numpy as np
 from project.data.cube import meshData
 import project.Geometry as geo
+import project.Dynamics as dyn
 
 
-def test_geometry():
-    """ 测试Geometry模块的功能
+@ti.kernel
+def init_Vm_linear(body: ti.template()):
+    for i in body.Vm:
+        body.Vm[i] = body.nodes[i][1] * 30.0
+        body.ver_Ta[i] = 0.5 * body.Vm[i]
+
+    for i in body.elements:
+        id0, id1, id2, id3 = body.elements[i][0], body.elements[i][1], body.elements[i][2], body.elements[i][3]
+        body.tet_Ta[i] = (body.ver_Ta[id0] + body.ver_Ta[id1] + body.ver_Ta[id2] + body.ver_Ta[id3]) / 4.0
+
+
+def test_dynamics():
+    """ 测试 Dynamics 模块的功能
 
     :return:
     """
 
     body = geo.read_body(meshData)
+    num_per_tet_set_np = np.array(meshData['sum_tet_set'], dtype=int)
+    dynamics_sys = dyn.Dynamics_XPBD_SNH_Active(body=body, num_pts_np=num_per_tet_set_np)
+    # 施加线性分布的电压
+    init_Vm_linear(body=body)
+    body.update_color_Vm()
+
     # 设置窗口参数
     windowLength = 1024
     lengthScale = min(windowLength, 512)
@@ -31,7 +50,9 @@ def test_geometry():
     camera.lookat(2.7179826, 1.31246826, 2.42507068)
     camera.up(0., 1., 0.)
 
+    iter_time = 0
     while window.running:
+        dynamics_sys.update()
 
         # set the camera, you can move around by pressing 'wasdeq'
         camera.track_user_inputs(window, movement_speed=0.2, hold_key=ti.ui.LMB)
@@ -53,4 +74,4 @@ def test_geometry():
 
 if __name__ == "__main__":
     ti.init(arch=ti.cuda, default_fp=ti.f64)
-    test_geometry()
+    test_dynamics()
