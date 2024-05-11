@@ -28,15 +28,20 @@ def read_body(meshData):
     num_tet_set_np = np.array(meshData['num_tet_set'], dtype=int)[0]
     # tet_set
     tet_set_np = np.array(meshData['tet_set'], dtype=int)
+
     # dirichlet bou
+    flag_dirichlet = False
     if meshData['bou_tag_dirichlet']:
         bou_tag_dirichlet_np = np.array(meshData['bou_tag_dirichlet'], dtype=int)
+        flag_dirichlet = True
     else:
         bou_tag_dirichlet_np = np.zeros(len(pos_np), dtype=int)
 
     # neumann bou
+    flag_neumann = False
     if meshData['bou_tag_neumann']:
         bou_tag_neumann_np = np.array(meshData['bou_tag_neumann'], dtype=int)
+        flag_neumann = True
     else:
         bou_tag_neumann_np = np.zeros(len(pos_np), dtype=int)
 
@@ -56,4 +61,4 @@ def read_body(meshData):
                  bou_tag_neumann_np=bou_tag_neumann_np
                  )
 
-    return body
+    return body, flag_dirichlet, flag_neumann

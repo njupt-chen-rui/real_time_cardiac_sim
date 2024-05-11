@@ -99,7 +99,12 @@ class Dynamics_XPBD_SNH_Active:
         # 是否开启边界约束
         self.tag_dirichlet_all_dir = tag_dirichlet_all_dir
         self.tag_dirichlet_y_dir = tag_dirichlet_y_dir
+        self.bou_dirichlet = self.body.bou_tag_dirichlet
         self.tag_neumann = tag_neumann
+        self.bou_neumann = self.body.bou_tag_neumann
+
+        # 是否开启主动力更新
+        self.flag_update_Ta = True
 
     @ti.kernel
     def init(self):
@@ -138,7 +143,8 @@ class Dynamics_XPBD_SNH_Active:
         # self.update_Ta(self.dt)
         for _ in range(self.numSubsteps):
             # 更新主动力
-            self.update_Ta(self.h)
+            if self.flag_update_Ta:
+                self.update_Ta(self.h)
             # XPBD子步更新
             self.sub_step()
 

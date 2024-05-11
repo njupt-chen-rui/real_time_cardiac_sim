@@ -3,6 +3,7 @@
 """
 
 import taichi as ti
+import taichi.math as tm
 import numpy as np
 from project.data.cube import meshData
 import project.Geometry as geo
@@ -20,17 +21,38 @@ def init_Vm_linear(body: ti.template()):
         body.tet_Ta[i] = (body.ver_Ta[id0] + body.ver_Ta[id1] + body.ver_Ta[id2] + body.ver_Ta[id3]) / 4.0
 
 
+@ti.kernel
+def init_dirichlet_bou(body: ti.template()):
+    for i in body.nodes:
+        if abs(body.nodes[i][1]) < 1e-12:
+            body.bou_tag_dirichlet[i] = 1
+
+
+@ti.kernel
+def init_fiber(body: ti.template()):
+    for i in body.tet_fiber:
+        body.tet_fiber[i] = tm.vec3(0.0, 1.0, 0.0)
+        body.tet_sheet[i] = tm.vec3(1.0, 0.0, 0.0)
+
+
 def test_dynamics():
     """ 测试 Dynamics 模块的功能
 
     :return:
     """
 
-    body = geo.read_body(meshData)
+    body, flag_dirichlet, flag_neumann = geo.read_body(meshData)
+
     num_per_tet_set_np = np.array(meshData['sum_tet_set'], dtype=int)
-    dynamics_sys = dyn.Dynamics_XPBD_SNH_Active(body=body, num_pts_np=num_per_tet_set_np)
+    dynamics_sys = dyn.Dynamics_XPBD_SNH_Active(body=body, num_pts_np=num_per_tet_set_np,
+                                                tag_dirichlet_all_dir=flag_dirichlet, tag_neumann=flag_neumann)
     # 施加线性分布的电压
     init_Vm_linear(body=body)
+    init_dirichlet_bou(body=body)
+    init_fiber(body=body)
+    dynamics_sys.dt = 1.0 / 50.0
+    dynamics_sys.flag_update_Ta = False
+    # dynamics_sys.numPosIters = 10
     body.update_color_Vm()
 
     # 设置窗口参数
