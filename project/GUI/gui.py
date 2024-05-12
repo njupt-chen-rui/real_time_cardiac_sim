@@ -1,12 +1,17 @@
 import taichi as ti
 import taichi.math as tm
-from project.Geometry import Body
-from project.GUI import Interaction
+# from project.Geometry import Body
+# from project.GUI import Interaction
+import project.Geometry as geo
+import project.GUI as gui
 
 
+# TODO:
+# @ti.data_oriented
 class Gui:
     """用于可视化的基类
 
+    TODO: 补充注释
     属性:
         iter_time: 迭代时间
         RES: 窗口分辨率
@@ -17,26 +22,34 @@ class Gui:
         camera_lookat: camera lookat
         camera_up: camera up vector
     """
+
+    # 仿真迭代次数
     iter_time = 0
+    # 分辨率
     resolution = (1600, 960)
-    name = "心脏力电耦合仿真"
+    # 窗口名
+    window_name = "心脏力电耦合仿真"
+    # 是否启用垂直同步
     is_vsync = True
+    # 背景为白色
     background_color = (1., 1., 1.)
+
+    # 相机参数
     camera_pos = tm.vec3(-0.95338696, 5.68768456, 19.50115459)
     camera_lookat = tm.vec3(-0.90405993, 5.36242057, 18.55681875)
     camera_up = tm.vec3(0., 1., 0.)
 
-    def __init__(self, body: Body, elec_sys, dyn_sys):
+    def __init__(self, body: geo.Body, elec_sys, dyn_sys):
         self.body = body
         self.elec_sys = elec_sys
         self.dyn_sys = dyn_sys
-        self.interaction_op = Interaction()
+        self.interaction_op = gui.Interaction()
 
     def set_resolution(self, width, height):
         self.resolution = (width, height)
 
     def set_name(self, name):
-        self.name = name
+        self.window_name = name
 
     def set_body(self, body):
         self.body = body
@@ -61,7 +74,7 @@ class Gui:
 
     def display(self):
         # 初始化 window, canvas, scene 和 camera 对象
-        window = ti.ui.Window(self.name, self.resolution, vsync=self.is_vsync)
+        window = ti.ui.Window(self.window_name, self.resolution, vsync=self.is_vsync)
         canvas = window.get_canvas()
         canvas.set_background_color(self.background_color)
         scene = ti.ui.Scene()
