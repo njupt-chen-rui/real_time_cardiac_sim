@@ -479,6 +479,10 @@ class Electrophysiology_Aliec_Panfilov(Electrophysiology):
                 self.k * self.Vm[i] * (1.0 + self.b - self.Vm[i])) * (
                                1.0 - tm.exp(-1.0 * dt * epsilon_Vm_w))
 
+    @ti.func
+    def calculate_Rz(self, i, dt):
+        pass
+
 
 @ti.data_oriented
 class Electrophysiology_FitzHugh_Nagumo(Electrophysiology):
@@ -523,3 +527,7 @@ class Electrophysiology_FitzHugh_Nagumo(Electrophysiology):
         self.w[i] = self.w[i] * tm.exp(-1.0 * dt * self.epsilon_0 * self.gamma) + (
                 self.epsilon_0 * (self.beta * self.Vm[i] - self.sigma) / (self.epsilon_0 * self.gamma)) * (
                             1.0 - tm.exp(-1.0 * dt * (self.epsilon_0 * self.gamma)))
+
+    @ti.func
+    def calculate_Rz(self, i, dt):
+        pass

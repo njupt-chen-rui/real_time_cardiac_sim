@@ -31,7 +31,7 @@ def read_body(meshData):
 
     # dirichlet bou
     flag_dirichlet = False
-    if meshData['bou_tag_dirichlet']:
+    if 'bou_tag_dirichlet' in meshData:
         bou_tag_dirichlet_np = np.array(meshData['bou_tag_dirichlet'], dtype=int)
         flag_dirichlet = True
     else:
@@ -39,7 +39,7 @@ def read_body(meshData):
 
     # neumann bou
     flag_neumann = False
-    if meshData['bou_tag_neumann']:
+    if 'bou_tag_neumann' in meshData:
         bou_tag_neumann_np = np.array(meshData['bou_tag_neumann'], dtype=int)
         flag_neumann = True
     else:

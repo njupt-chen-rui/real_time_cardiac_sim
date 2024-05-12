@@ -3,10 +3,23 @@
 """
 
 import taichi as ti
-from project.data.biventricular import meshData
+import taichi.math as tm
+import numpy as np
+from project.data.whole_heart import meshData
 import project.Geometry as geo
 import project.Electrophysiology as elec
 import project.Dynamics as dyn
+
+
+@ti.kernel
+def apply_stimulation_test_electrophysiology(body: ti.template(), tag_nid: int, sti_val: float):
+    for i in body.nodes:
+        dis = (body.nodes[i][0] - body.nodes[tag_nid][0]) * (body.nodes[i][0] - body.nodes[tag_nid][0])\
+              + (body.nodes[i][1] - body.nodes[tag_nid][1]) * (body.nodes[i][1] - body.nodes[tag_nid][1])\
+              + (body.nodes[i][2] - body.nodes[tag_nid][2]) * (body.nodes[i][2] - body.nodes[tag_nid][2])
+        dis = tm.sqrt(dis)
+        if dis < 1.0:
+            body.Vm[i] = sti_val
 
 
 def test_electrophysiology():
@@ -15,8 +28,14 @@ def test_electrophysiology():
     :return:
     """
 
-    body = geo.read_body(meshData)
-    electrophysiology_sys = elec.Electrophysiology_Aliec_Panfilov(body=body)
+    body, flag_dirichlet, flag_neumman = geo.read_body(meshData)
+    electrophysiology_system = elec.Electrophysiology_Aliec_Panfilov(body=body)
+    apply_stimulation_test_electrophysiology(body=body, tag_nid=1162, sti_val=1.5)
+    electrophysiology_system.sigma_f /= 10.0
+    electrophysiology_system.sigma_s /= 10.0
+    electrophysiology_system.sigma_n /= 10.0
+    num_per_tet_set_np = np.array(meshData['sum_tet_set'], dtype=int)
+    dynamics_system = dyn.Dynamics_XPBD_SNH_Active(body=body, num_pts_np=num_per_tet_set_np)
 
 
     # 设置窗口参数
@@ -36,7 +55,16 @@ def test_electrophysiology():
     camera.lookat(-0.90405993, 5.36242057, 18.55681875)
     camera.up(0., 1., 0.)
 
+    iter_time = 0
     while window.running:
+        if iter_time % 80 == 0:
+            apply_stimulation_test_electrophysiology(body=body, tag_nid=1162, sti_val=1.5)
+        iter_time += 1
+        if electrophysiology_system:
+            electrophysiology_system.update(1)
+            body.update_color_Vm()
+        if dynamics_system:
+            dynamics_system.update()
 
         # set the camera, you can move around by pressing 'wasdeq'
         camera.track_user_inputs(window, movement_speed=0.2, hold_key=ti.ui.LMB)
