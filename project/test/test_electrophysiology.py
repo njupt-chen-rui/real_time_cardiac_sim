@@ -3,9 +3,10 @@
 """
 
 import taichi as ti
-from project.data.cube import meshData
+from project.data.biventricular import meshData
 import project.Geometry as geo
 import project.Electrophysiology as elec
+import project.Dynamics as dyn
 
 
 def test_electrophysiology():
@@ -15,7 +16,8 @@ def test_electrophysiology():
     """
 
     body = geo.read_body(meshData)
-    elec_sys = elec.Electrophysiology_Aliec_Panfilov(body)
+    electrophysiology_sys = elec.Electrophysiology_Aliec_Panfilov(body=body)
+
 
     # 设置窗口参数
     windowLength = 1024

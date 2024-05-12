@@ -52,7 +52,6 @@ def test_dynamics():
     init_fiber(body=body)
     dynamics_sys.dt = 1.0 / 50.0
     dynamics_sys.flag_update_Ta = False
-    # dynamics_sys.numPosIters = 10
     body.update_color_Vm()
 
     # 设置窗口参数
