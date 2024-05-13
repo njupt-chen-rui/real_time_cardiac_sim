@@ -35,17 +35,25 @@ class Gui:
     background_color = (1., 1., 1.)
 
     # 相机参数
+    # TODO: 相机参数的控制
     camera_pos = tm.vec3(-0.95338696, 5.68768456, 19.50115459)
     camera_lookat = tm.vec3(-0.90405993, 5.36242057, 18.55681875)
     camera_up = tm.vec3(0., 1., 0.)
 
-    def __init__(self, body: geo.Body, elec_sys, dyn_sys):
+    def __init__(self, body: geo.Body, elec_sys, dyn_sys, body_name="unknown"):
         self.body = body
-        self.elec_sys = elec_sys
-        self.dyn_sys = dyn_sys
-        self.interaction_op = gui.Interaction()
+        self.electrophysiology_system = elec_sys
+        self.dynamics_system = dyn_sys
+        self.interaction_operator = gui.Interaction()
+        self.camera_parameter = gui.Camera_parameter(body_name)
 
     def set_resolution(self, width, height):
+        """调整分辨率
+
+        :param width: 宽
+        :param height: 高
+        :return:
+        """
         self.resolution = (width, height)
 
     def set_name(self, name):
