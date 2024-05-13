@@ -25,15 +25,6 @@ class Gui:
 
     # 仿真迭代次数
     iter_time = 0
-    # 分辨率
-    resolution = (1600, 960)
-    # 窗口名
-    window_name = "心脏力电耦合仿真"
-    # 是否启用垂直同步
-    is_vsync = True
-    # 背景为白色
-    background_color = (1., 1., 1.)
-
     # 相机参数
     # TODO: 相机参数的控制
     camera_pos = tm.vec3(-0.95338696, 5.68768456, 19.50115459)
@@ -44,6 +35,16 @@ class Gui:
         self.body = body
         self.electrophysiology_system = elec_sys
         self.dynamics_system = dyn_sys
+
+        # 分辨率
+        self.resolution = (1600, 960)
+        # 窗口名
+        self.window_name = "心脏力电耦合仿真"
+        # 是否启用垂直同步
+        self.is_vsync = True
+        # 背景为白色
+        self.background_color = (1., 1., 1.)
+
         self.interaction_operator = gui.Interaction()
         self.camera_parameter = gui.Camera_parameter(body_name)
 
@@ -57,6 +58,11 @@ class Gui:
         self.resolution = (width, height)
 
     def set_name(self, name):
+        """ 设置主窗口名称
+
+        :param name: 主窗口名称
+        :return:
+        """
         self.window_name = name
 
     def set_body(self, body):
@@ -69,6 +75,13 @@ class Gui:
         self.dyn_sys = dyn_sys
 
     def set_background_color(self, r, g, b):
+        """ 设置主窗口背景颜色
+
+        :param r: [0, 1]
+        :param g: [0, 1]
+        :param b: [0, 1]
+        :return:
+        """
         self.background_color = (r, g, b)
 
     def set_camera_position(self, x, y, z):
