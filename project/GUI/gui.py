@@ -135,10 +135,99 @@ class Gui:
         lengthScale = min(self.resolution[0], 512)
         light_distance = lengthScale / 25.
 
+        # TODO: body 和 body.nodes不需要重复传值
+        selector = gui.Selector(camera, window, self.geometry_model.nodes, self.geometry_model)
+        ixop = self.interaction_operator
+
         # 渲染循环
         while window.running:
+            # -------------------------------------------------控制台----------------------------------------------------
 
-            # ----------------------------渲染-----------------------------------
+            main_gui = window.get_gui()
+            with main_gui.sub_window("Controls", 0, 0, 0.25, 0.78) as controls:
+                # 仿真控制
+                ixop.isSolving = controls.checkbox("Run", ixop.isSolving)
+                ixop.is_restart = controls.button("Restart")
+                ixop.dt = controls.slider_float("dt", ixop.dt, 0.001, 1.0)
+                controls.text("")
+
+                # 电学参数设置
+                controls.text("Electrophysiology Model")
+                ixop.ele_op.use_ap_model = controls.checkbox("Aliec Panfilov Model", ixop.ele_op.use_ap_model)
+                ixop.ele_op.use_fn_model = controls.checkbox("FitzHugh Nagumo Model", ixop.ele_op.use_fn_model)
+                # k = controls.slider_float("k", k, 1.0, 10.0)
+                # a = controls.slider_float("a", a, 0.001, 1.0)
+                # b = controls.slider_float("b", b, 0.001, 1.0)
+                # beta = controls.slider_float("beta", beta, 0.1, 1.0)
+                # gamma = controls.slider_float("gamma", gamma, 0.5, 5.0)
+                # sigma = controls.slider_float("sigma", sigma, 0.0, 1.0)
+                # epsilon_0 = controls.slider_float("epsilon_0", epsilon_0, 0.01, 1.0)
+                # mu_1 = controls.slider_float("mu_1", mu_1, 0.01, 1.0)
+                # mu_2 = controls.slider_float("mu_2", mu_2, 0.01, 1.0)
+                # sigma_f = controls.slider_float("sigma_f", sigma_f, 0.01, 10.0)
+                # sigma_s = controls.slider_float("sigma_s", sigma_s, 0.01, 10.0)
+                # sigma_n = controls.slider_float("sigma_n", sigma_n, 0.01, 10.0)
+                # # 外界电刺激(捕捉刺激点时暂停仿真)
+                # is_grab = controls.checkbox("Grab Stimulus Position", is_grab)
+                # controls.text("")
+
+                # 力学参数设置
+                controls.text("Dynamics Model")
+                # numSubSteps = controls.slider_int("numSubSteps", numSubSteps, 1, 10)
+                # numPosIters = controls.slider_int("numPosIters", numPosIters, 1, 10)
+                # Youngs_modulus = controls.slider_float("Young\'s Modulus", Youngs_modulus, 1000.0, 50000.0)
+                # Poisson_ratio = controls.slider_float("Poisson Ratio", Poisson_ratio, 0.01, 0.4999)
+                # kappa = controls.slider_float("kappa", kappa, 5.0, 20.0)
+                # # 外力拖拽(暂停相机视角移动)
+                # is_apply_ext_force = controls.checkbox("Apply External Force", is_apply_ext_force)
+                # controls.text("")
+
+                # 保存当前图像
+                controls.text("Utility")
+                # is_save_image = controls.button("Save Image")
+                # is_save_vtk = controls.button("Save VTK")
+
+            # -------------------------------------------------控制台----------------------------------------------------
+
+            # --------------------------------------------------交互-----------------------------------------------------
+
+            # 如果正在抓取电刺激或者施加外力，关闭相机视角旋转
+            if not ixop.ele_op.is_grab and not ixop.dyn_op.is_apply_ext_force:
+                camera.track_user_inputs(window, movement_speed=0.2, hold_key=ti.ui.LMB)
+
+            # TODO: 重置仿真
+            if ixop.is_restart:
+                pass
+
+            # TODO: 抓取电刺激位置
+            if ixop.ele_op.is_grab:
+                ixop.isSolving = False
+                selector.select()
+                # 清除选中的电刺激区域
+                if window.is_pressed("c"):
+                    selector.clear()
+                if window.is_pressed("t"):
+                    # apply_stimulation_gui(self.geometry_model, selector, 1.0)
+                    self.geometry_model.update_color_Vm()
+
+            # TODO: 施加外力
+            if ixop.dyn_op.is_apply_ext_force:
+                pass
+
+            # --------------------------------------------------交互-----------------------------------------------------
+
+            # --------------------------------------------------仿真-----------------------------------------------------
+
+            if ixop.isSolving:  # 是否开启仿真
+                ixop.iter_time += 1
+                self.electrophysiology_model.update(1)
+                self.geometry_model.update_color_Vm()
+                self.dynamics_model.numSubsteps = ixop.dyn_op.numSubSteps
+                self.dynamics_model.update()
+
+            # --------------------------------------------------仿真-----------------------------------------------------
+
+            # --------------------------------------------------渲染-----------------------------------------------------
 
             # 设置相机
             scene.set_camera(camera)
@@ -163,7 +252,7 @@ class Gui:
             # 显示
             window.show()
 
-            # ----------------------------渲染-----------------------------------
+            # --------------------------------------------------渲染-----------------------------------------------------
 
         # # 初始化 window, canvas, scene 和 camera 对象
         # window = ti.ui.Window(self.window_name, self.resolution, vsync=self.is_vsync)
