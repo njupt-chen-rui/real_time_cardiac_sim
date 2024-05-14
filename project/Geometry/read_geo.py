@@ -6,7 +6,7 @@ import project.tool as tool
 def read_body(meshData):
     """从文件中读入数据并创建Body对象
 
-    :return: Body对象
+    :return: Body对象, flag_dirichlet, flag_neumann
     """
 
     # 顶点位置
