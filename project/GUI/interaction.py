@@ -7,5 +7,6 @@ class Interaction:
     """
 
     def __init__(self):
+        self.iter_time = 0  # 仿真迭代次数
         self.isSolving = False  # 是否运行仿真解算
         self.is_grab = False  # 是否开始捕捉电刺激施加点

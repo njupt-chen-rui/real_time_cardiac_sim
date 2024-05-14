@@ -1,0 +1,39 @@
+import taichi as ti
+import taichi.math as tm
+
+
+@ti.data_oriented
+class CameraParameter:
+    """相机位置参数预设值
+
+        根据name确定camera的各种参数
+
+    """
+
+    def __init__(self, body_name="unknown"):
+        self.camera_pos = tm.vec3(0., 0., 0.)
+        self.camera_lookat = tm.vec3(0., 0., 0.)
+        self.camera_up = tm.vec3(0., 1., 0.)
+        self.name = body_name
+        self.init_by_name()
+
+    def init_by_name(self):
+        """ 根据物体名称，预设的camera参数
+
+        """
+
+        if self.name == "cube":
+            self.camera_pos = tm.vec3(3.41801597, 1.65656349, 3.05081163)
+            self.camera_lookat = tm.vec3(2.7179826, 1.31246826, 2.42507068)
+            self.camera_up = tm.vec3(0., 1., 0.)
+        elif self.name == "whole_heart":
+            self.camera_pos = tm.vec3(-0.95338696, 5.68768456, 19.50115459)
+            self.camera_lookat = tm.vec3(-0.90405993, 5.36242057, 18.55681875)
+            self.camera_up = tm.vec3(0., 1., 0.)
+
+
+# test
+# if __name__ == "__main__":
+#     camera_para = Camera_parameter()
+#     res = camera_para.get_camera_position()
+#     print(res[0])

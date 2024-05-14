@@ -25,16 +25,16 @@ class Gui:
 
     # 仿真迭代次数
     iter_time = 0
-    # 相机参数
-    # TODO: 相机参数的控制
-    camera_pos = tm.vec3(-0.95338696, 5.68768456, 19.50115459)
-    camera_lookat = tm.vec3(-0.90405993, 5.36242057, 18.55681875)
-    camera_up = tm.vec3(0., 1., 0.)
 
-    def __init__(self, body: geo.Body, electrophysiology_system, dynamics_system, body_name="unknown"):
-        self.body = body
-        self.electrophysiology_system = electrophysiology_system
-        self.dynamics_system = dynamics_system
+    # TODO: 相机参数的控制
+    # camera_pos = tm.vec3(-0.95338696, 5.68768456, 19.50115459)
+    # camera_lookat = tm.vec3(-0.90405993, 5.36242057, 18.55681875)
+    # camera_up = tm.vec3(0., 1., 0.)
+
+    def __init__(self, geometry_model: geo.Body, electrophysiology_model, dynamics_model, body_name="unknown"):
+        self.geometry_model = geometry_model
+        self.electrophysiology_model = electrophysiology_model
+        self.dynamics_model = dynamics_model
 
         # 分辨率
         self.resolution = (1600, 960)
@@ -46,7 +46,7 @@ class Gui:
         self.background_color = (1., 1., 1.)
 
         self.interaction_operator = gui.Interaction()
-        self.camera_parameter = gui.Camera_parameter(body_name)
+        self.camera_parameter = gui.CameraParameter(body_name)
 
     def set_resolution(self, width, height):
         """调整分辨率
@@ -65,14 +65,29 @@ class Gui:
         """
         self.window_name = name
 
-    def set_body(self, body):
-        self.body = body
+    def set_geometry_model(self, geometry_model):
+        """ 设置Body类
 
-    def set_elec_sys(self, elec_sys):
-        self.elec_sys = elec_sys
+        :param geometry_model: 物体几何属性
+        :return:
+        """
+        self.geometry_model = geometry_model
 
-    def set_dyn_sys(self, dyn_sys):
-        self.dyn_sys = dyn_sys
+    def set_electrophysiology_model(self, electrophysiology_model):
+        """ 设置电生理模型类
+
+        :param electrophysiology_model: 电生理模型类
+        :return:
+        """
+        self.electrophysiology_model = electrophysiology_model
+
+    def set_dynamics_model(self, dynamics_model):
+        """ 设置动力学模型类
+
+        :param dynamics_model: 动力学模型类
+        :return:
+        """
+        self.dynamics_model = dynamics_model
 
     def set_background_color(self, r, g, b):
         """ 设置主窗口背景颜色
