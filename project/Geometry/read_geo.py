@@ -3,6 +3,14 @@ import project.Geometry as geo
 import project.tool as tool
 
 
+# TODO: 把读文件写成一个类(要读的属性有些多)
+""" 
+ - 改成使用路径读取文件
+ - 生成body
+ - 返回flag_dirichlet 和 flag_neumann
+ - 读取num_tet_set
+ - 读取 meshData 的 name
+"""
 def read_body(meshData):
     """从文件中读入数据并创建Body对象
 
