@@ -61,6 +61,13 @@ class Electrophysiology:
         self.cg_Ad = ti.field(float, self.body.num_nodes)
         self.cg_epsilon = 1.0e-3
 
+    def restart(self):
+        """ 重置电生理学模型 """
+
+        self.init_elec()
+        self.init_Ds_F_Be()
+        self.init_fiber()
+
     @ti.kernel
     def init_elec(self):
         """初始化电压，门控变量和外界刺激

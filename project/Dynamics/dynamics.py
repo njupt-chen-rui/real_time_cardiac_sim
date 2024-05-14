@@ -106,6 +106,12 @@ class Dynamics_XPBD_SNH_Active:
         # 是否开启主动力更新
         self.flag_update_Ta = True
 
+    def restart(self):
+        """ 重置动力学模型 """
+
+        self.init()
+        self.flag_update_Ta = True
+
     @ti.kernel
     def init(self):
         """动力学仿真类Dynamics_XPBD_SNH_Active的taichi field成员变量初始化

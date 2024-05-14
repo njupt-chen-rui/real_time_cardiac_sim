@@ -30,6 +30,7 @@ class ElectrophysiologyInteraction:
 
     def __init__(self):
 
+        self.ele_model_id = 0
         self.use_ap_model = True  # 默认使用 Aliec Panfilov 模型
         self.use_fn_model = False  # 是否使用 FitzHugh Nagumo 模型
 

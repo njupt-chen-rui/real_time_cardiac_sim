@@ -42,12 +42,14 @@ class Body:
         """顶点数"""
         self.nodes = ti.Vector.field(3, float, shape=self.num_nodes)
         self.nodes.from_numpy(nodes_np)
+        self.nodes_np = nodes_np
 
         # 读入有限单元数据
         self.num_elements = len(elements_np)
         """单元数"""
         self.elements = ti.Vector.field(4, int, shape=self.num_elements)
         self.elements.from_numpy(elements_np)
+        self.elements_np = elements_np
 
         # 密度：kg/m^3
         self.density = density
@@ -55,12 +57,15 @@ class Body:
         # 纤维方向(网格上的)
         self.tet_fiber = ti.Vector.field(3, dtype=float, shape=self.num_elements)
         self.tet_fiber.from_numpy(tet_fiber_np)
+        self.tet_fiber_np = tet_fiber_np
 
         self.tet_sheet = ti.Vector.field(3, dtype=float, shape=self.num_elements)
         self.tet_sheet.from_numpy(tet_sheet_np)
+        self.tet_sheet_np = tet_sheet_np
 
         self.tet_normal = ti.Vector.field(3, dtype=float, shape=self.num_elements)
         self.tet_normal.from_numpy(tet_normal_np)
+        self.tet_normal_np = tet_normal_np
 
         # TODO: 四面体形变，力学和电学应该可以统一使用
         self.Dm = ti.Matrix.field(3, 3, float, shape=self.num_elements)
@@ -106,6 +111,20 @@ class Body:
         # 顶点颜色
         self.colormap = colormap
         self.nodes_color = ti.Vector.field(3, float, shape=self.num_nodes)
+        self.init_nodes_color()
+
+    def restart(self):
+        """ 重置几何模型 """
+
+        self.nodes.from_numpy(self.nodes_np)
+        self.tet_fiber.from_numpy(self.tet_fiber_np)
+        self.tet_sheet.from_numpy(self.tet_sheet_np)
+        self.tet_normal.from_numpy(self.tet_normal_np)
+        # TODO: 四面体形变，力学和电学应该可以统一使用
+        self.init_DmInv()
+        self.init_volume()
+        self.init_Vm()
+        self.init_Ta()
         self.init_nodes_color()
 
     @ti.kernel
@@ -155,7 +174,7 @@ class Body:
         """
 
         for i in self.nodes:
-            self.Vm[i] = 1.0
+            self.Vm[i] = 0.0
 
     @ti.kernel
     def init_Ta(self):
@@ -196,7 +215,6 @@ class Body:
         """
 
         for i in self.nodes_color:
-            # self.nodes_color[i] = tm.vec3(1.0, 0.5, 0.5)
             self.nodes_color[i] = self.colormap.get_rgb(self.Vm[i])
 
     @ti.kernel
@@ -207,5 +225,4 @@ class Body:
         """
 
         for i in self.nodes_color:
-            # self.nodes_color[i] = tm.vec3([self.Vm[i], 0.0, 1.0 - self.Vm[i]])
             self.nodes_color[i] = self.colormap.get_rgb(self.Vm[i])
