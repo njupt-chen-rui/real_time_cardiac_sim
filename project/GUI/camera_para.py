@@ -14,33 +14,37 @@ import taichi.math as tm
 
 @ti.data_oriented
 class Camera_parameter:
-    """相机位置参数预设值"""
+    """相机位置参数预设值
+
+        根据name确定camera的各种参数
+
+    """
 
     def __init__(self, body_name="cube"):
         self.name = body_name
 
     def get_camera_position(self):
-        res = (0., 0., 0.)
+        res = tm.vec3(0., 0., 0.)
         if self.name == "cube":
-            res = (3.41801597, 1.65656349, 3.05081163)
+            res = tm.vec3(3.41801597, 1.65656349, 3.05081163)
         elif self.name == "whole_heart":
-            res = (-0.95338696, 5.68768456, 19.50115459)
+            res = tm.vec3(-0.95338696, 5.68768456, 19.50115459)
         return res
 
     def get_camera_lookat(self):
-        res = (0., 0., 0.)
+        res = tm.vec3(0., 0., 0.)
         if self.name == "cube":
-            res = (2.7179826, 1.31246826, 2.42507068)
+            res = tm.vec3(2.7179826, 1.31246826, 2.42507068)
         elif self.name == "whole_heart":
-            res = (-0.90405993, 5.36242057, 18.55681875)
+            res = tm.vec3(-0.90405993, 5.36242057, 18.55681875)
         return res
 
     def get_camera_up(self):
-        res = (0., 1., 0.)
+        res = tm.vec3(0., 1., 0.)
         if self.name == "cube":
-            res = (0., 1., 0.)
+            res = tm.vec3(0., 1., 0.)
         elif self.name == "whole_heart":
-            res = (0., 1., 0.)
+            res = tm.vec3(0., 1., 0.)
         return res
 
 

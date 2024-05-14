@@ -31,10 +31,10 @@ class Gui:
     camera_lookat = tm.vec3(-0.90405993, 5.36242057, 18.55681875)
     camera_up = tm.vec3(0., 1., 0.)
 
-    def __init__(self, body: geo.Body, elec_sys, dyn_sys, body_name="unknown"):
+    def __init__(self, body: geo.Body, electrophysiology_system, dynamics_system, body_name="unknown"):
         self.body = body
-        self.electrophysiology_system = elec_sys
-        self.dynamics_system = dyn_sys
+        self.electrophysiology_system = electrophysiology_system
+        self.dynamics_system = dynamics_system
 
         # 分辨率
         self.resolution = (1600, 960)
