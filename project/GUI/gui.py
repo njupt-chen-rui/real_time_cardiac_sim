@@ -254,7 +254,7 @@ class Gui:
                 # 确认已选中的电刺激区域
                 if window.is_pressed("t"):
                     # TODO:施加电刺激的大小
-                    # apply_stimulation_gui(self.geometry_model, selector, 1.0)
+                    apply_stimulation_with_selector(self.geometry_model, selector, ixop.ele_op.stimulation_value)
                     self.geometry_model.update_color_Vm()
 
             # TODO: 施加外力
@@ -300,3 +300,10 @@ class Gui:
             window.show()
 
             # --------------------------------------------------渲染-----------------------------------------------------
+
+
+@ti.kernel
+def apply_stimulation_with_selector(body: ti.template(), sec: ti.template(), sti_val: float):
+    for i in body.nodes:
+        if sec.is_in_rect[i]:
+            body.Vm[i] = sti_val

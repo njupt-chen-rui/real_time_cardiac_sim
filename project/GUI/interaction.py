@@ -14,7 +14,6 @@ class Interaction:
 
         self.iter_time = 0  # 仿真迭代次数
 
-
         self.is_save_vtk = False
         self.flag = True
 
@@ -55,6 +54,7 @@ class ElectrophysiologyInteraction:
         self.sigma = 0.0
 
         self.is_grab = False  # 是否开始捕捉电刺激施加点
+        self.stimulation_value = 1.0
 
 
 class DynamicsInteraction:
