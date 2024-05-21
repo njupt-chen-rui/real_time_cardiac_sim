@@ -163,34 +163,40 @@ class Gui:
                 # TODO: Cm
                 ixop.ele_op.a = controls.slider_float("a", ixop.ele_op.a, 0.001, 1.0)
                 ixop.ele_op.epsilon_0 = controls.slider_float("epsilon_0", ixop.ele_op.epsilon_0, 0.01, 1.0)
-                # ap 模型参数
-                ixop.ele_op.k = controls.slider_float("k", ixop.ele_op.k, 1.0, 10.0)
-                ixop.ele_op.b = controls.slider_float("b", ixop.ele_op.b, 0.001, 1.0)
-                ixop.ele_op.mu_1 = controls.slider_float("mu_1", ixop.ele_op.mu_1, 0.01, 1.0)
-                ixop.ele_op.mu_2 = controls.slider_float("mu_2", ixop.ele_op.mu_2, 0.01, 1.0)
-                # fn 模型参数
-                ixop.ele_op.beta = controls.slider_float("beta", ixop.ele_op.beta, 0.1, 1.0)
-                ixop.ele_op.gamma = controls.slider_float("gamma", ixop.ele_op.gamma, 0.5, 5.0)
-                ixop.ele_op.sigma = controls.slider_float("sigma", ixop.ele_op.sigma, 0.0, 1.0)
+                if ixop.ele_op.use_ap_model:
+                    # ap 模型参数
+                    ixop.ele_op.k = controls.slider_float("k", ixop.ele_op.k, 1.0, 10.0)
+                    ixop.ele_op.b = controls.slider_float("b", ixop.ele_op.b, 0.001, 1.0)
+                    ixop.ele_op.mu_1 = controls.slider_float("mu_1", ixop.ele_op.mu_1, 0.01, 1.0)
+                    ixop.ele_op.mu_2 = controls.slider_float("mu_2", ixop.ele_op.mu_2, 0.01, 1.0)
+                elif ixop.ele_op.use_fn_model:
+                    # fn 模型参数
+                    ixop.ele_op.beta = controls.slider_float("beta", ixop.ele_op.beta, 0.1, 1.0)
+                    ixop.ele_op.gamma = controls.slider_float("gamma", ixop.ele_op.gamma, 0.5, 5.0)
+                    ixop.ele_op.sigma = controls.slider_float("sigma", ixop.ele_op.sigma, 0.0, 1.0)
+                    controls.text("")
                 # 外界电刺激(捕捉刺激点时暂停仿真)
                 ixop.ele_op.is_grab = controls.checkbox("Grab Stimulus Position", ixop.ele_op.is_grab)
+                ixop.ele_op.stimulation_value = controls.slider_float("Stimulus Voltage", ixop.ele_op.stimulation_value,
+                                                                      -80, 20)
                 controls.text("")
 
                 # 力学参数设置
                 controls.text("Dynamics Model")
-                # numSubSteps = controls.slider_int("numSubSteps", numSubSteps, 1, 10)
-                # numPosIters = controls.slider_int("numPosIters", numPosIters, 1, 10)
-                # Youngs_modulus = controls.slider_float("Young\'s Modulus", Youngs_modulus, 1000.0, 50000.0)
-                # Poisson_ratio = controls.slider_float("Poisson Ratio", Poisson_ratio, 0.01, 0.4999)
-                # kappa = controls.slider_float("kappa", kappa, 5.0, 20.0)
-                # # 外力拖拽(暂停相机视角移动)
+                ixop.dyn_op.numSubSteps = controls.slider_int("numSubSteps", ixop.dyn_op.numSubSteps, 1, 10)
+                ixop.dyn_op.numPosIters = controls.slider_int("numPosIters", ixop.dyn_op.numPosIters, 1, 10)
+                ixop.dyn_op.Youngs_modulus = controls.slider_float("Young\'s Modulus", ixop.dyn_op.Youngs_modulus, 1000.0, 50000.0)
+                ixop.dyn_op.Poisson_ratio = controls.slider_float("Poisson Ratio", ixop.dyn_op.Poisson_ratio, 0.01, 0.4999)
+                ixop.dyn_op.kappa = controls.slider_float("kappa", ixop.dyn_op.kappa, 5.0, 20.0)
+                # TODO: 外力拖拽(暂停相机视角移动)
                 # is_apply_ext_force = controls.checkbox("Apply External Force", is_apply_ext_force)
-                # controls.text("")
+                controls.text("")
 
                 # 保存当前图像
                 controls.text("Utility")
-                # is_save_image = controls.button("Save Image")
-                # is_save_vtk = controls.button("Save VTK")
+                # TODO:
+                ixop.is_save_image = controls.button("Save Image")
+                ixop.is_save_vtk = controls.button("Save VTK")
 
             # -------------------------------------------------控制台----------------------------------------------------
 
@@ -253,9 +259,16 @@ class Gui:
                     selector.clear()
                 # 确认已选中的电刺激区域
                 if window.is_pressed("t"):
-                    # TODO:施加电刺激的大小
-                    apply_stimulation_with_selector(self.geometry_model, selector, ixop.ele_op.stimulation_value)
+                    apply_stimulation_with_selector(self.geometry_model, selector,
+                                                    (ixop.ele_op.stimulation_value + 80) / 100.0)
                     self.geometry_model.update_color_Vm()
+
+            # 设计力学模型参数
+            self.dynamics_model.numSubsteps = ixop.dyn_op.numSubSteps
+            self.dynamics_model.numPosIters = ixop.dyn_op.numPosIters
+            self.dynamics_model.Youngs_modulus = ixop.dyn_op.Youngs_modulus
+            self.dynamics_model.Poisson_ratio = ixop.dyn_op.Poisson_ratio
+            self.dynamics_model.kappa = ixop.dyn_op.kappa
 
             # TODO: 施加外力
             if ixop.dyn_op.is_apply_ext_force:

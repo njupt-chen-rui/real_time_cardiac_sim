@@ -54,7 +54,7 @@ class ElectrophysiologyInteraction:
         self.sigma = 0.0
 
         self.is_grab = False  # 是否开始捕捉电刺激施加点
-        self.stimulation_value = 1.0
+        self.stimulation_value = 20  # 刺激电压值 in [-80, 20]
 
 
 class DynamicsInteraction:
