@@ -140,6 +140,8 @@ class Gui:
         selector = gui.Selector(camera, window, self.geometry_model.nodes, self.geometry_model)
         ixop = self.interaction_operator
 
+        gGrabber = gui.Grabber()
+
         # 渲染循环
         while window.running:
             # -------------------------------------------------控制台----------------------------------------------------
@@ -195,8 +197,8 @@ class Gui:
                 # 保存当前图像
                 controls.text("Utility")
                 # TODO:
-                ixop.is_save_image = controls.button("Save Image")
-                ixop.is_save_vtk = controls.button("Save VTK")
+                # ixop.is_save_image = controls.button("Save Image")
+                # ixop.is_save_vtk = controls.button("Save VTK")
 
             # -------------------------------------------------控制台----------------------------------------------------
 
