@@ -97,6 +97,7 @@ class Selector:
         self.is_in_rect.fill(0)
 
     def rect(self, x_min, y_min, x_max, y_max):
+        """ 用于画出框选长方体 """
         self.rect_verts[0] = [x_min, y_min]
         self.rect_verts[1] = [x_max, y_min]
         self.rect_verts[2] = [x_min, y_max]

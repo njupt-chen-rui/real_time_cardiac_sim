@@ -189,7 +189,7 @@ class Gui:
                 ixop.dyn_op.Poisson_ratio = controls.slider_float("Poisson Ratio", ixop.dyn_op.Poisson_ratio, 0.01, 0.4999)
                 ixop.dyn_op.kappa = controls.slider_float("kappa", ixop.dyn_op.kappa, 5.0, 20.0)
                 # TODO: 外力拖拽(暂停相机视角移动)
-                # is_apply_ext_force = controls.checkbox("Apply External Force", is_apply_ext_force)
+                ixop.dyn_op.is_apply_ext_force = controls.checkbox("Apply External Force", ixop.dyn_op.is_apply_ext_force)
                 controls.text("")
 
                 # 保存当前图像
@@ -282,7 +282,6 @@ class Gui:
                 ixop.iter_time += 1
                 self.electrophysiology_model.update(1)
                 self.geometry_model.update_color_Vm()
-                self.dynamics_model.numSubsteps = ixop.dyn_op.numSubSteps
                 self.dynamics_model.update()
 
             # --------------------------------------------------仿真-----------------------------------------------------
