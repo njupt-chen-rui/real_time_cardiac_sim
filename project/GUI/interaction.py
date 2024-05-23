@@ -70,3 +70,6 @@ class DynamicsInteraction:
         self.Poisson_ratio = 0.45
         self.kappa = 5.0
         self.is_apply_ext_force = False  # 是否开始施加外力
+        self.gMouseDown = False
+        self.start = (0, 0)
+        self.end = (0, 0)

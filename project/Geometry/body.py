@@ -105,6 +105,7 @@ class Body:
 
         # 计算网格表面, 用于辅助可视化
         surfaces = geo.get_surface_from_tet(nodes=nodes_np, elements=elements_np)
+        # print(surfaces.shape[0], surfaces.shape[1])  # 40445 3
         self.surfaces = ti.field(ti.i32, shape=(surfaces.shape[0] * surfaces.shape[1]))
         self.surfaces.from_numpy(surfaces.reshape(-1))
 

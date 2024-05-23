@@ -14,6 +14,7 @@ class CameraParameter:
         self.camera_pos = tm.vec3(0., 0., 0.)
         self.camera_lookat = tm.vec3(0., 0., 0.)
         self.camera_up = tm.vec3(0., 1., 0.)
+        self.camera_fov = 45
         self.name = body_name
         self.init_by_name()
 

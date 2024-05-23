@@ -106,6 +106,10 @@ class Dynamics_XPBD_SNH_Active:
         # 是否开启主动力更新
         self.flag_update_Ta = True
 
+        # 外力的粒子抓取器抓取的粒子id
+        self.grabId = -1
+        self.grabInvMass = 0.0
+
     def restart(self):
         """ 重置动力学模型 """
 
@@ -560,6 +564,33 @@ class Dynamics_XPBD_SNH_Active:
         for i in pos:
             # 更新速度
             vel[i] = (pos[i] - self.prevPos[i]) / self.h
+
+    def startGrab(self, pos):
+        p = tm.vec3(pos[0], pos[1], pos[2])
+        minD2 = 100000000.0
+        self.grabId = -1
+        for i in range(self.nv):
+            d2 = (p[0] - self.nodes[i][0]) * (p[0] - self.nodes[i][0]) + (p[1] - self.nodes[i][1]) * (
+                        p[1] - self.nodes[i][1]) + (p[2] - self.nodes[i][2]) * (p[2] - self.nodes[i][2])
+            if d2 < minD2:
+                minD2 = d2
+                self.grabId = i
+        if self.grabId >= 0:
+            self.grabInvMass = self.invMass[self.grabId]
+            self.invMass[self.grabId] = 0.0
+            self.nodes[self.grabId] = p
+
+    def moveGrabbed(self, pos, vel):
+        if self.grabId >= 0:
+            p = tm.vec3(pos[0], pos[1], pos[2])
+            self.nodes[self.grabId] = p
+
+    def endGrab(self, pos, vel):
+        if self.grabId >= 0:
+            self.invMass[self.grabId] = self.grabInvMass
+            v = tm.vec3(vel[0], vel[1], vel[2])
+            self.vel[self.grabId] = v
+        self.grabId = -1
 
 
 @ti.data_oriented

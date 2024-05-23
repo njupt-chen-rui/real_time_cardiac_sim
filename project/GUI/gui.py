@@ -131,6 +131,7 @@ class Gui:
         camera.up(self.camera_parameter.camera_up[0],
                   self.camera_parameter.camera_up[1],
                   self.camera_parameter.camera_up[2])
+        camera.fov(self.camera_parameter.camera_fov)
 
         # 设置光源参数
         lengthScale = min(self.resolution[0], 512)
@@ -140,7 +141,7 @@ class Gui:
         selector = gui.Selector(camera, window, self.geometry_model.nodes, self.geometry_model)
         ixop = self.interaction_operator
 
-        gGrabber = gui.Grabber()
+        gGrabber = gui.Grabber(camera, self.geometry_model, self.dynamics_model, self.resolution)
 
         # 渲染循环
         while window.running:
@@ -273,8 +274,21 @@ class Gui:
             self.dynamics_model.kappa = ixop.dyn_op.kappa
 
             # TODO: 施加外力
+
             if ixop.dyn_op.is_apply_ext_force:
-                ixop.isSolving = False
+                # ixop.isSolving = False
+                if window.is_pressed(ti.ui.LMB):
+                    if window.get_event(ti.ui.RELEASE):
+                        ixop.dyn_op.gMouseDown = False
+                        gGrabber.end()
+                    elif not ixop.dyn_op.gMouseDown:
+                        ixop.dyn_op.gMouseDown = True
+                        curr_mouse_pos = window.get_cursor_pos()
+                        gGrabber.start(curr_mouse_pos[0], curr_mouse_pos[1])
+                    else:
+                        curr_mouse_pos = window.get_cursor_pos()
+                        gGrabber.move(curr_mouse_pos[0], curr_mouse_pos[1])
+
 
             # --------------------------------------------------交互-----------------------------------------------------
 
@@ -314,6 +328,9 @@ class Gui:
             window.show()
 
             # --------------------------------------------------渲染-----------------------------------------------------
+
+        # print(gGrabber.raycaster.ray.origin, gGrabber.raycaster.ray.direction)
+        # print(self.geometry_model.surfaces.shape)121335
 
 
 @ti.kernel
