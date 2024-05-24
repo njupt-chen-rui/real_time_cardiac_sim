@@ -142,6 +142,7 @@ class Gui:
         ixop = self.interaction_operator
 
         gGrabber = gui.Grabber(camera, self.geometry_model, self.dynamics_model, self.resolution)
+        gCatcher = gui.Catcher(camera, window, self.geometry_model)
 
         # 渲染循环
         while window.running:
@@ -275,19 +276,26 @@ class Gui:
 
             # TODO: 施加外力
 
+            # 方案一
+            # if ixop.dyn_op.is_apply_ext_force:
+            #     # ixop.isSolving = False
+            #     if window.is_pressed(ti.ui.LMB):
+            #         if window.get_event(ti.ui.RELEASE):
+            #             ixop.dyn_op.gMouseDown = False
+            #             gGrabber.end()
+            #         elif not ixop.dyn_op.gMouseDown:
+            #             ixop.dyn_op.gMouseDown = True
+            #             curr_mouse_pos = window.get_cursor_pos()
+            #             gGrabber.start(curr_mouse_pos[0], curr_mouse_pos[1])
+            #         else:
+            #             curr_mouse_pos = window.get_cursor_pos()
+            #             gGrabber.move(curr_mouse_pos[0], curr_mouse_pos[1])
+
+            # 方案二
             if ixop.dyn_op.is_apply_ext_force:
+                # 仿真不一定需要关闭
                 # ixop.isSolving = False
-                if window.is_pressed(ti.ui.LMB):
-                    if window.get_event(ti.ui.RELEASE):
-                        ixop.dyn_op.gMouseDown = False
-                        gGrabber.end()
-                    elif not ixop.dyn_op.gMouseDown:
-                        ixop.dyn_op.gMouseDown = True
-                        curr_mouse_pos = window.get_cursor_pos()
-                        gGrabber.start(curr_mouse_pos[0], curr_mouse_pos[1])
-                    else:
-                        curr_mouse_pos = window.get_cursor_pos()
-                        gGrabber.move(curr_mouse_pos[0], curr_mouse_pos[1])
+                gCatcher.catcher()
 
 
             # --------------------------------------------------交互-----------------------------------------------------

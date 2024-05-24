@@ -70,7 +70,7 @@ class RayCaster:
         self.ray = Ray(cam_origin, cam_lower_left_corner + x * cam_horizontal + y * cam_vertical - cam_origin)
         self.origin = self.ray.get_origin()
         self.direction = self.ray.get_direction()
-        print(self.origin, self.direction)
+        # print(self.origin, self.direction)
 
     def intersect(self) -> (bool, float):
         self.get_intersect()
