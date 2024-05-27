@@ -5,5 +5,6 @@ res/
 .idea
 __pycache__/
 */imgui.ini
+.vscode
 
 # c++的配置文件
