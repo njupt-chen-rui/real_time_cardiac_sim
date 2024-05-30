@@ -4,6 +4,7 @@ import taichi.math as tm
 import project.Geometry as geo
 import project.Electrophysiology as elec
 import project.GUI as gui
+import project.tool as tool
 
 
 class Gui:
@@ -19,12 +20,13 @@ class Gui:
         camera_parameter: 相机参数
     """
 
-    def __init__(self, geometry_model: geo.Body, dynamics_model, body_name="unknown"):
+    def __init__(self, geometry_model: geo.Body, dynamics_model, body_name="unknown", save_path="./"):
         self.geometry_model = geometry_model
         self.electrophysiology_model_ap = elec.Electrophysiology_Aliec_Panfilov(body=geometry_model)
         self.electrophysiology_model_fn = elec.Electrophysiology_FitzHugh_Nagumo(body=geometry_model)
         self.electrophysiology_model = self.electrophysiology_model_ap
         self.dynamics_model = dynamics_model
+        self.body_name = body_name
 
         # 分辨率
         self.resolution = (1600, 960)
@@ -37,6 +39,7 @@ class Gui:
 
         self.interaction_operator = gui.Interaction()
         self.camera_parameter = gui.CameraParameter(body_name)
+        self.save_path = save_path
 
     def set_resolution(self, width, height):
         """调整分辨率
@@ -199,8 +202,8 @@ class Gui:
                 # 保存当前图像
                 controls.text("Utility")
                 # TODO:
-                # ixop.is_save_image = controls.button("Save Image")
-                # ixop.is_save_vtk = controls.button("Save VTK")
+                ixop.is_save_image = controls.button("Save Image")
+                ixop.is_save_vtk = controls.button("Save VTK")
 
             # -------------------------------------------------控制台----------------------------------------------------
 
@@ -256,7 +259,7 @@ class Gui:
 
             # TODO: 抓取电刺激位置
             if ixop.ele_op.is_grab:
-                ixop.isSolving = False
+                # ixop.isSolving = False
                 selector.select()
                 # 清除选中的电刺激区域
                 if window.is_pressed("c"):
@@ -275,7 +278,6 @@ class Gui:
             self.dynamics_model.kappa = ixop.dyn_op.kappa
 
             # TODO: 施加外力
-
             # 方案一
             # if ixop.dyn_op.is_apply_ext_force:
             #     # ixop.isSolving = False
@@ -327,10 +329,17 @@ class Gui:
             # 帧显示
             canvas.scene(scene)
 
-            # # 保存当前图像
-            # image_name = "a.jpg"
-            # if is_save_image:
-            #     window.save_image(image_name)
+            # 保存当前图像
+            image_name = self.save_path + self.body_name + "_" + str(ixop.iter_time) + ".jpg"
+            if ixop.is_save_image:
+                window.save_image(image_name)
+
+            # 保存当前vtk模型
+            vtk_name = self.save_path + self.body_name + "_" + str(ixop.iter_time) + ".vtk"
+            if ixop.is_save_vtk:
+                ixop.isSolving = False
+                tool.export_tet_in_vtk(filename=vtk_name, points=self.geometry_model.nodes, elements=self.geometry_model.elements, Vm=self.geometry_model.Vm)
+                
 
             # 显示
             window.show()

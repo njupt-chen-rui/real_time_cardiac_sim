@@ -14,7 +14,9 @@ class Interaction:
 
         self.iter_time = 0  # 仿真迭代次数
 
+        self.is_save_image = False
         self.is_save_vtk = False
+        
         self.flag = True
 
         # TODO: 将电生理模型和动力学模型的dt分开

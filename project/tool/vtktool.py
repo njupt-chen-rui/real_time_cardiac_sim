@@ -41,9 +41,13 @@ def export_tet_in_vtk(filename, points, elements, Vm=None):
         file.write("\nPOINT_DATA %d\n" % num_points)
         file.write("SCALARS vm double 1\n")
         file.write("LOOKUP_TABLE default\n")
+        Vm = Vm.to_numpy()
         num_Vm = np.size(Vm)
         for i in range(num_Vm):
-            file.write("%f\n" % Vm[i])
+            # 如果输出归一化的电压
+            # file.write("%f\n" % Vm[i])
+            # 如果输出实际电压
+            file.write("%f\n" % (Vm[i] * 100.0 - 80.0))
 
     # 关闭文件
     file.close()
