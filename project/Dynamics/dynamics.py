@@ -1,6 +1,7 @@
 import taichi as ti
 import taichi.math as tm
 import numpy as np
+import project.Configure as cfg
 from project.Geometry import Body
 
 
@@ -371,7 +372,11 @@ class Dynamics_XPBD_SNH_Active:
             f = F @ f0
             C = tm.sqrt(f.dot(f))
             C_inv = 1.0 / C
+            
             dCadF = C_inv * F @ (f0.outer_product(f0))
+            if cfg.Preset_Scene == 3:
+                dCadF = - C_inv * F @ (f0.outer_product(f0))
+            
             self.computedCdx(i, dCadF)
             if self.body.tet_Ta[i] > 0:
                 self.applyToElem(i, C, 1.0 / self.body.tet_Ta[i], 3)
@@ -634,7 +639,7 @@ class Dynamics_XPBD_SNH_Active_aniso(Dynamics_XPBD_SNH_Active):
 
         # 各向异性弹性参数
         self.kappa = kappa
-        self.inv_kappa = 1.0 / kappa
+        self.inv_kappa = 1.0 / (kappa + 1e-12)
 
     @ti.kernel
     def solve_elem_Gauss_Seidel_GPU(self, left: int, right: int):
@@ -732,6 +737,8 @@ class Dynamics_XPBD_SNH_Active_aniso(Dynamics_XPBD_SNH_Active):
             C = tm.sqrt(f.dot(f))
             C_inv = 1.0 / C
             dCadF = C_inv * F @ (f0.outer_product(f0))
+            if cfg.Preset_Scene == 3:
+                dCadF = - C_inv * F @ (f0.outer_product(f0))
             self.computedCdx(i, dCadF)
             if self.body.tet_Ta[i] > 0:
                 self.applyToElem(i, C, 1.0 / self.body.tet_Ta[i], 3)

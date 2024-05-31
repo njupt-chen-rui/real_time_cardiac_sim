@@ -23,6 +23,8 @@ class Interaction:
         self.ele_op = ElectrophysiologyInteraction()
         self.dyn_op = DynamicsInteraction()
 
+        self.open_interaction_during_solving = False
+
 
 class ElectrophysiologyInteraction:
     """ 电生理学仿真交换操作类
@@ -30,6 +32,8 @@ class ElectrophysiologyInteraction:
     """
 
     def __init__(self):
+        # 是否开启电生理学仿真
+        self.open = True
 
         self.ele_model_id = 0
         self.use_ap_model = True  # 默认使用 Aliec Panfilov 模型
@@ -64,6 +68,8 @@ class DynamicsInteraction:
 
     """
     def __init__(self):
+        # 是否开启动力学仿真
+        self.open = True
 
         self.numSubSteps = 1
         self.numPosIters = 1

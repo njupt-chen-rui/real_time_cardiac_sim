@@ -110,8 +110,8 @@ class Catcher:
 
 
             # 调试输出
-            self.geo_model.Vm[self.catch_id] = 1.0
-            self.geo_model.update_color_Vm()
+            # self.geo_model.Vm[self.catch_id] = 1.0
+            # self.geo_model.update_color_Vm()
 
     def intersection(self, vid, coord):
         O = self.camera.curr_position

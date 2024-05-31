@@ -227,3 +227,13 @@ class Body:
 
         for i in self.nodes_color:
             self.nodes_color[i] = self.colormap.get_rgb(self.Vm[i])
+
+    @ti.kernel
+    def update_color_Vm_scene3(self):
+        """使用电压更新顶点颜色, 颜色类型由colormap指定
+
+        :return:
+        """
+
+        for i in self.nodes_color:
+            self.nodes_color[i] = self.colormap.get_rgb(self.Vm[i] / 30.0)

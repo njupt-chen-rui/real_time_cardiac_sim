@@ -1,5 +1,6 @@
 import taichi as ti
 import numpy as np
+import project.Configure as cfg
 import project.Geometry as geo
 import project.Electrophysiology as elec
 import project.Dynamics as dyn
@@ -24,6 +25,7 @@ def set_usr_scene(args):
     dyn_model = dyn.Dynamics_XPBD_SNH_Active_aniso(body=geo_model, num_pts_np=num_per_tet_set_np)
     save_path = args.save_path
     mygui = gui.Gui(geometry_model=geo_model, dynamics_model=dyn_model, body_name=body_name, save_path=save_path)
+    mygui.interaction_operator.open_interaction_during_solving = args.dyn_ix
 
     mygui.display()
 
@@ -37,6 +39,7 @@ def set_scene_whole_heart(args):
     dyn_model = dyn.Dynamics_XPBD_SNH_Active_aniso(body=geo_model, num_pts_np=num_per_tet_set_np)
     save_path = args.save_path
     mygui = gui.Gui(geometry_model=geo_model, dynamics_model=dyn_model, body_name=body_name, save_path=save_path)
+    mygui.interaction_operator.open_interaction_during_solving = args.dyn_ix
 
     mygui.display()
 
@@ -54,7 +57,9 @@ def set_scene_whole_heart(args):
 
 
 def set_scene(args):
+    cfg.Preset_Scene = args.scene
     scene_id = args.scene
+    cfg
     if scene_id == 0:
         set_usr_scene(args)
     elif scene_id == 1:
@@ -71,6 +76,7 @@ if __name__ == "__main__":
     parser.add_argument('--save_path', type=str, default='./res/')
     parser.add_argument('--scene', type=int, default=0)
     parser.add_argument('--body_name', type=str, default='whole_heart')
+    parser.add_argument('--dyn_ix', type=bool, default=False, help='when it is True, open Dynamic interaction')
     args = parser.parse_args()
 
     assert 0 <= args.scene <= 5

@@ -92,7 +92,7 @@ class Selector:
             self.select_particles(self.start, self.end)
 
     def clear(self):
-        """ 清楚所有顶点的选中 """
+        """ 清除所有顶点的选中 """
         self.geo_model.update_color_Vm()
         self.is_in_rect.fill(0)
 

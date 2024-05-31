@@ -6,6 +6,7 @@ import project.Geometry as geo
 import project.Electrophysiology as elec
 import project.GUI as gui
 import project.tool as tool
+import project.Configure as cfg
 
 
 class Gui:
@@ -31,6 +32,7 @@ class Gui:
 
         # 分辨率
         self.resolution = (1600, 960)
+        # self.resolution = (800, 800)
         # 窗口名
         self.window_name = "心脏力电耦合仿真"
         # 是否启用垂直同步
@@ -161,44 +163,46 @@ class Gui:
                 controls.text("")
 
                 # 电学参数设置
-                controls.text("Electrophysiology Model")
-                ixop.ele_op.use_ap_model = controls.checkbox("Aliec Panfilov Model", ixop.ele_op.use_ap_model)
-                ixop.ele_op.use_fn_model = controls.checkbox("FitzHugh Nagumo Model", ixop.ele_op.use_fn_model)
-                # 公有参数
-                ixop.ele_op.sigma_f = controls.slider_float("sigma_f", ixop.ele_op.sigma_f, 0.01, 10.0)
-                ixop.ele_op.sigma_s = controls.slider_float("sigma_s", ixop.ele_op.sigma_s, 0.01, 10.0)
-                ixop.ele_op.sigma_n = controls.slider_float("sigma_n", ixop.ele_op.sigma_n, 0.01, 10.0)
-                # TODO: Cm
-                ixop.ele_op.a = controls.slider_float("a", ixop.ele_op.a, 0.001, 1.0)
-                ixop.ele_op.epsilon_0 = controls.slider_float("epsilon_0", ixop.ele_op.epsilon_0, 0.01, 1.0)
-                if ixop.ele_op.use_ap_model:
-                    # ap 模型参数
-                    ixop.ele_op.k = controls.slider_float("k", ixop.ele_op.k, 1.0, 10.0)
-                    ixop.ele_op.b = controls.slider_float("b", ixop.ele_op.b, 0.001, 1.0)
-                    ixop.ele_op.mu_1 = controls.slider_float("mu_1", ixop.ele_op.mu_1, 0.01, 1.0)
-                    ixop.ele_op.mu_2 = controls.slider_float("mu_2", ixop.ele_op.mu_2, 0.01, 1.0)
-                elif ixop.ele_op.use_fn_model:
-                    # fn 模型参数
-                    ixop.ele_op.beta = controls.slider_float("beta", ixop.ele_op.beta, 0.1, 1.0)
-                    ixop.ele_op.gamma = controls.slider_float("gamma", ixop.ele_op.gamma, 0.5, 5.0)
-                    ixop.ele_op.sigma = controls.slider_float("sigma", ixop.ele_op.sigma, 0.0, 1.0)
+                if ixop.ele_op.open:                    
+                    controls.text("Electrophysiology Model")
+                    ixop.ele_op.use_ap_model = controls.checkbox("Aliec Panfilov Model", ixop.ele_op.use_ap_model)
+                    ixop.ele_op.use_fn_model = controls.checkbox("FitzHugh Nagumo Model", ixop.ele_op.use_fn_model)
+                    # 公有参数
+                    ixop.ele_op.sigma_f = controls.slider_float("sigma_f", ixop.ele_op.sigma_f, 0.01, 10.0)
+                    ixop.ele_op.sigma_s = controls.slider_float("sigma_s", ixop.ele_op.sigma_s, 0.01, 10.0)
+                    ixop.ele_op.sigma_n = controls.slider_float("sigma_n", ixop.ele_op.sigma_n, 0.01, 10.0)
+                    # TODO: Cm
+                    ixop.ele_op.a = controls.slider_float("a", ixop.ele_op.a, 0.001, 1.0)
+                    ixop.ele_op.epsilon_0 = controls.slider_float("epsilon_0", ixop.ele_op.epsilon_0, 0.01, 1.0)
+                    if ixop.ele_op.use_ap_model:
+                        # ap 模型参数
+                        ixop.ele_op.k = controls.slider_float("k", ixop.ele_op.k, 1.0, 10.0)
+                        ixop.ele_op.b = controls.slider_float("b", ixop.ele_op.b, 0.001, 1.0)
+                        ixop.ele_op.mu_1 = controls.slider_float("mu_1", ixop.ele_op.mu_1, 0.01, 1.0)
+                        ixop.ele_op.mu_2 = controls.slider_float("mu_2", ixop.ele_op.mu_2, 0.01, 1.0)
+                    elif ixop.ele_op.use_fn_model:
+                        # fn 模型参数
+                        ixop.ele_op.beta = controls.slider_float("beta", ixop.ele_op.beta, 0.1, 1.0)
+                        ixop.ele_op.gamma = controls.slider_float("gamma", ixop.ele_op.gamma, 0.5, 5.0)
+                        ixop.ele_op.sigma = controls.slider_float("sigma", ixop.ele_op.sigma, 0.0, 1.0)
+                        controls.text("")
+                    # 外界电刺激(捕捉刺激点时暂停仿真)
+                    ixop.ele_op.is_grab = controls.checkbox("Grab Stimulus Position", ixop.ele_op.is_grab)
+                    ixop.ele_op.stimulation_value = controls.slider_float("Stimulus Voltage", ixop.ele_op.stimulation_value,
+                                                                        -80, 20)
                     controls.text("")
-                # 外界电刺激(捕捉刺激点时暂停仿真)
-                ixop.ele_op.is_grab = controls.checkbox("Grab Stimulus Position", ixop.ele_op.is_grab)
-                ixop.ele_op.stimulation_value = controls.slider_float("Stimulus Voltage", ixop.ele_op.stimulation_value,
-                                                                      -80, 20)
-                controls.text("")
 
                 # 力学参数设置
-                controls.text("Dynamics Model")
-                ixop.dyn_op.numSubSteps = controls.slider_int("numSubSteps", ixop.dyn_op.numSubSteps, 1, 10)
-                ixop.dyn_op.numPosIters = controls.slider_int("numPosIters", ixop.dyn_op.numPosIters, 1, 10)
-                ixop.dyn_op.Youngs_modulus = controls.slider_float("Young\'s Modulus", ixop.dyn_op.Youngs_modulus, 1000.0, 50000.0)
-                ixop.dyn_op.Poisson_ratio = controls.slider_float("Poisson Ratio", ixop.dyn_op.Poisson_ratio, 0.01, 0.4999)
-                ixop.dyn_op.kappa = controls.slider_float("kappa", ixop.dyn_op.kappa, 5.0, 20.0)
-                # TODO: 外力拖拽(暂停相机视角移动)
-                ixop.dyn_op.is_apply_ext_force = controls.checkbox("Apply External Force", ixop.dyn_op.is_apply_ext_force)
-                controls.text("")
+                if ixop.dyn_op.open:
+                    controls.text("Dynamics Model")
+                    ixop.dyn_op.numSubSteps = controls.slider_int("numSubSteps", ixop.dyn_op.numSubSteps, 1, 10)
+                    ixop.dyn_op.numPosIters = controls.slider_int("numPosIters", ixop.dyn_op.numPosIters, 1, 10)
+                    ixop.dyn_op.Youngs_modulus = controls.slider_float("Young\'s Modulus", ixop.dyn_op.Youngs_modulus, 1000.0, 50000.0)
+                    ixop.dyn_op.Poisson_ratio = controls.slider_float("Poisson Ratio", ixop.dyn_op.Poisson_ratio, 0.01, 0.4999)
+                    ixop.dyn_op.kappa = controls.slider_float("kappa", ixop.dyn_op.kappa, 0.0, 20.0)
+                    # TODO: 外力拖拽(暂停相机视角移动)
+                    ixop.dyn_op.is_apply_ext_force = controls.checkbox("Apply External Force", ixop.dyn_op.is_apply_ext_force)
+                    controls.text("")
 
                 # 保存当前图像
                 controls.text("Utility")
@@ -218,58 +222,68 @@ class Gui:
             if ixop.is_restart:
                 ixop.isSolving = False
                 self.geometry_model.restart()
-                self.electrophysiology_model.restart()
-                self.dynamics_model.restart()
+                if ixop.ele_op.open:
+                    self.electrophysiology_model.restart()
+                if ixop.dyn_op.open:
+                    self.dynamics_model.restart()
 
             # 切换电生理模型
-            if ixop.ele_op.use_ap_model and ixop.ele_op.use_fn_model:
-                ixop.isSolving = False
-                ele_model_id_tmp = 0
-                if ixop.ele_op.ele_model_id == 0:
-                    ele_model_id_tmp = 1
-                    ixop.ele_op.use_ap_model = False
-                    ixop.ele_op.use_fn_model = True
-                    self.electrophysiology_model = self.electrophysiology_model_fn
-                elif ixop.ele_op.ele_model_id == 1:
+            if ixop.ele_op.open:
+                if ixop.ele_op.use_ap_model and ixop.ele_op.use_fn_model:
+                    ixop.isSolving = False
                     ele_model_id_tmp = 0
-                    ixop.ele_op.use_ap_model = True
-                    ixop.ele_op.use_fn_model = False
-                    self.electrophysiology_model = self.electrophysiology_model_ap
-                ixop.ele_op.ele_model_id = ele_model_id_tmp
-                self.geometry_model.restart()
-                self.electrophysiology_model.restart()
-                self.dynamics_model.restart()
+                    if ixop.ele_op.ele_model_id == 0:
+                        ele_model_id_tmp = 1
+                        ixop.ele_op.use_ap_model = False
+                        ixop.ele_op.use_fn_model = True
+                        self.electrophysiology_model = self.electrophysiology_model_fn
+                    elif ixop.ele_op.ele_model_id == 1:
+                        ele_model_id_tmp = 0
+                        ixop.ele_op.use_ap_model = True
+                        ixop.ele_op.use_fn_model = False
+                        self.electrophysiology_model = self.electrophysiology_model_ap
+                    ixop.ele_op.ele_model_id = ele_model_id_tmp
+                    self.geometry_model.restart()
+                    self.electrophysiology_model.restart()
+                    self.dynamics_model.restart()
 
             # 设置电生理参数
-            self.electrophysiology_model.sigma_f = ixop.ele_op.sigma_f
-            self.electrophysiology_model.sigma_s = ixop.ele_op.sigma_s
-            self.electrophysiology_model.sigma_n = ixop.ele_op.sigma_n
-            if ixop.ele_op.use_ap_model:
-                self.electrophysiology_model.a = ixop.ele_op.a
-                self.electrophysiology_model.epsilon_0 = ixop.ele_op.epsilon_0
-                self.electrophysiology_model.k = ixop.ele_op.k
-                self.electrophysiology_model.b = ixop.ele_op.b
-                self.electrophysiology_model.mu_1 = ixop.ele_op.mu_1
-                self.electrophysiology_model.mu_2 = ixop.ele_op.mu_2
-            elif ixop.ele_op.use_fn_model:
-                self.electrophysiology_model.a = ixop.ele_op.a
-                self.electrophysiology_model.epsilon_0 = ixop.ele_op.epsilon_0
-                self.electrophysiology_model.beta = ixop.ele_op.beta
-                self.electrophysiology_model.gamma = ixop.ele_op.gamma
-                self.electrophysiology_model.sigma = ixop.ele_op.sigma
+            if ixop.ele_op.open:
+                self.electrophysiology_model.sigma_f = ixop.ele_op.sigma_f
+                self.electrophysiology_model.sigma_s = ixop.ele_op.sigma_s
+                self.electrophysiology_model.sigma_n = ixop.ele_op.sigma_n
+                if ixop.ele_op.use_ap_model:
+                    self.electrophysiology_model.a = ixop.ele_op.a
+                    self.electrophysiology_model.epsilon_0 = ixop.ele_op.epsilon_0
+                    self.electrophysiology_model.k = ixop.ele_op.k
+                    self.electrophysiology_model.b = ixop.ele_op.b
+                    self.electrophysiology_model.mu_1 = ixop.ele_op.mu_1
+                    self.electrophysiology_model.mu_2 = ixop.ele_op.mu_2
+                elif ixop.ele_op.use_fn_model:
+                    self.electrophysiology_model.a = ixop.ele_op.a
+                    self.electrophysiology_model.epsilon_0 = ixop.ele_op.epsilon_0
+                    self.electrophysiology_model.beta = ixop.ele_op.beta
+                    self.electrophysiology_model.gamma = ixop.ele_op.gamma
+                    self.electrophysiology_model.sigma = ixop.ele_op.sigma
 
             # TODO: 抓取电刺激位置
-            if ixop.ele_op.is_grab:
-                # ixop.isSolving = False
-                selector.select()
-                # 清除选中的电刺激区域
-                if window.is_pressed("c"):
-                    selector.clear()
-                # 确认已选中的电刺激区域
-                if window.is_pressed("t"):
-                    apply_stimulation_with_selector(self.geometry_model, selector,
-                                                    (ixop.ele_op.stimulation_value + 80) / 100.0)
-                    self.geometry_model.update_color_Vm()
+            if ixop.ele_op.open:
+                if ixop.ele_op.is_grab:
+                    if not ixop.open_interaction_during_solving:
+                        ixop.isSolving = False
+                    
+                    selector.select()
+                    # 清除选中的电刺激区域
+                    if window.is_pressed("c"):
+                        selector.clear()
+                    # 确认已选中的电刺激区域
+                    if window.is_pressed("t"):
+                        apply_stimulation_with_selector(self.geometry_model, selector,
+                                                        (ixop.ele_op.stimulation_value + 80) / 100.0)
+                        if cfg.Preset_Scene == 3:
+                            self.geometry_model.update_color_Vm_scene3()
+                        else:
+                            self.geometry_model.update_color_Vm()
 
             # 设计力学模型参数
             self.dynamics_model.numSubsteps = ixop.dyn_op.numSubSteps
@@ -279,25 +293,9 @@ class Gui:
             self.dynamics_model.kappa = ixop.dyn_op.kappa
 
             # TODO: 施加外力
-            # 方案一
-            # if ixop.dyn_op.is_apply_ext_force:
-            #     # ixop.isSolving = False
-            #     if window.is_pressed(ti.ui.LMB):
-            #         if window.get_event(ti.ui.RELEASE):
-            #             ixop.dyn_op.gMouseDown = False
-            #             gGrabber.end()
-            #         elif not ixop.dyn_op.gMouseDown:
-            #             ixop.dyn_op.gMouseDown = True
-            #             curr_mouse_pos = window.get_cursor_pos()
-            #             gGrabber.start(curr_mouse_pos[0], curr_mouse_pos[1])
-            #         else:
-            #             curr_mouse_pos = window.get_cursor_pos()
-            #             gGrabber.move(curr_mouse_pos[0], curr_mouse_pos[1])
-
-            # 方案二
             if ixop.dyn_op.is_apply_ext_force:
-                # 仿真不一定需要关闭
-                # ixop.isSolving = False
+                if not ixop.open_interaction_during_solving:
+                    ixop.isSolving = False
                 gCatcher.catcher()
 
 
@@ -307,9 +305,20 @@ class Gui:
 
             if ixop.isSolving:  # 是否开启仿真
                 ixop.iter_time += 1
-                self.electrophysiology_model.update(1)
-                self.geometry_model.update_color_Vm()
-                self.dynamics_model.update()
+
+                # 是否开启电生理仿真
+                if ixop.ele_op.open:
+                    self.electrophysiology_model.update(1)
+
+                # 不同场景的着色
+                if cfg.Preset_Scene == 3:
+                    self.geometry_model.update_color_Vm_scene3()
+                else:
+                    self.geometry_model.update_color_Vm()
+
+                # 是否开启动力学仿真
+                if ixop.dyn_op.open:
+                    self.dynamics_model.update()
 
             # --------------------------------------------------仿真-----------------------------------------------------
 
