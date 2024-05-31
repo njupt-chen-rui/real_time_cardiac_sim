@@ -226,6 +226,8 @@ class Gui:
                     self.electrophysiology_model.restart()
                 if ixop.dyn_op.open:
                     self.dynamics_model.restart()
+                if cfg.Preset_Scene == 3:
+                    self.restart_cube()
 
             # 切换电生理模型
             if ixop.ele_op.open:
@@ -358,6 +360,36 @@ class Gui:
 
         # print(gGrabber.raycaster.ray.origin, gGrabber.raycaster.ray.direction)
         # print(self.geometry_model.surfaces.shape)121335
+
+    def restart_cube(self):
+        @ti.kernel
+        def set_dirichlet_bou(geo_model: ti.template()):
+            for i in geo_model.nodes:
+                if abs(geo_model.nodes[i][1]) < 1e-12:
+                    geo_model.bou_tag_dirichlet[i] = 1
+
+        @ti.kernel
+        def set_Vm(geo_model: ti.template()):
+            tet = ti.static(geo_model.elements)
+            for i in geo_model.Vm:
+                geo_model.Vm[i] = geo_model.nodes[i][1] * 30.0
+                geo_model.ver_Ta[i] = 0.5 * geo_model.Vm[i]
+
+            for i in geo_model.elements:
+                id0, id1, id2, id3 = tet[i][0], tet[i][1], tet[i][2], tet[i][3]
+                geo_model.tet_Ta[i] = (geo_model.ver_Ta[id0] + geo_model.ver_Ta[id1] + geo_model.ver_Ta[id2] + geo_model.ver_Ta[id3]) / 4.0
+
+        @ti.kernel
+        def get_fiber(geo_model: ti.template()):
+            for i in geo_model.tet_fiber:
+                geo_model.tet_fiber[i] = tm.vec3(0.0, 1.0, 0.0)
+                geo_model.tet_sheet[i] = tm.vec3(1.0, 0.0, 0.0)
+        
+        set_Vm(self.geometry_model)
+        self.geometry_model.update_color_Vm_scene3()
+        set_dirichlet_bou(self.geometry_model)
+        get_fiber(self.geometry_model)
+        self.dynamics_model.flag_update_Ta = False
 
 
 @ti.kernel
