@@ -6,6 +6,7 @@ import project.Dynamics as dyn
 import project.GUI as gui
 import argparse
 import os
+import project.PreScene as psc
 
 
 def set_usr_scene(args):
@@ -27,6 +28,7 @@ def set_usr_scene(args):
     mygui.display()
 
 
+# TODO:
 def set_scene_whole_heart(args):
     from project.data.whole_heart import meshData
     body_name = meshData['name']
@@ -39,12 +41,27 @@ def set_scene_whole_heart(args):
     mygui.display()
 
 
+# def set_scene_cube(args):
+#     from project.data.cube import meshData
+#     body_name = meshData['name']
+#     geo_model, flag_dirichlet, flag_neumann = geo.read_body(meshData=meshData)
+#     num_per_tet_set_np = np.array(meshData['sum_tet_set'], dtype=int)
+#     dyn_model = dyn.Dynamics_XPBD_SNH_Active_aniso(body=geo_model, num_pts_np=num_per_tet_set_np, tag_dirichlet_all_dir=flag_dirichlet, tag_neumann=flag_neumann)
+#     save_path = args.save_path
+#     mygui = gui.Gui(geometry_model=geo_model, dynamics_model=dyn_model, body_name=body_name, save_path=save_path)
+
+#     mygui.display()
+
+
 def set_scene(args):
     scene_id = args.scene
     if scene_id == 0:
         set_usr_scene(args)
     elif scene_id == 1:
         set_scene_whole_heart(args)
+    elif scene_id == 3:
+        # set_scene_cube(args)
+        psc.set_scene_cube(args)
 
 
 if __name__ == "__main__":

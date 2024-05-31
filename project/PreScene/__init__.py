@@ -1,0 +1,1 @@
+from project.PreScene.scene_cube import set_scene_cube
