@@ -80,6 +80,12 @@ class Gui:
         elif self.interaction_operator.ele_op.use_fn_model:
             self.electrophysiology_model_fn = electrophysiology_model
 
+    def set_electrophysiology_model_type(self, model_type: str):
+        if model_type == 'ap':
+            self.electrophysiology_model = self.electrophysiology_model_ap
+        elif model_type == 'fn':
+            self.electrophysiology_model = self.electrophysiology_model_fn
+
     def set_dynamics_model(self, dynamics_model):
         """ 设置动力学模型类
 

@@ -17,10 +17,11 @@ def set_scene_cube(args):
     save_path = args.save_path
 
     mygui = gui.Gui(geometry_model=geo_model, dynamics_model=dyn_model, body_name=body_name, save_path=save_path)
-    mygui.interaction_operator.ele_op.open = False  # 关闭电生理仿真
-    mygui.interaction_operator.open_interaction_during_solving = args.dyn_ix  # 动态交互
+    mygui.interaction_operator.open_interaction_during_solving = args.dyn_ix  # 动态交互  
 
     # 场景配置
+    mygui.interaction_operator.ele_op.open = False  # 关闭电生理仿真
+      
     set_Vm(geo_model)
     geo_model.update_color_Vm_scene3()
     set_dirichlet_bou(geo_model=geo_model)

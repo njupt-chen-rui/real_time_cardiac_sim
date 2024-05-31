@@ -50,7 +50,7 @@ def set_scene(args):
     if scene_id == 0:
         set_usr_scene(args)
     elif scene_id == 1:
-        set_scene_whole_heart(args)
+        psc.set_scene_whole_heart(args)
     elif scene_id == 3:
         psc.set_scene_cube(args)
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--save_path', type=str, default='./res/')
-    parser.add_argument('--scene', type=int, default=0)
+    parser.add_argument('--scene', type=int, default=0, help='0: User defined scenes; 1: whole_heart; 2: biventricular; 3: cube; 4: lv')
     parser.add_argument('--body_name', type=str, default='whole_heart')
     parser.add_argument('--dyn_ix', type=bool, default=False, help='when it is True, open Dynamic interaction')
     args = parser.parse_args()

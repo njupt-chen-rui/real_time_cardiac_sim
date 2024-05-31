@@ -1,1 +1,2 @@
 from project.PreScene.scene_cube import set_scene_cube
+from project.PreScene.scene_whole_heart import set_scene_whole_heart
