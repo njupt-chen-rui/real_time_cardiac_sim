@@ -246,6 +246,7 @@ if __name__ == "__main__":
     parser.add_argument('--gamma', type=float, default=1.0)
     parser.add_argument('--sigma', type=float, default=0.0)
 
+    # 注: ap模型使用以下参数配置
     # --model=ap --Vm0=0.5 --w0=0.0 --a=0.15 --ep0=0.02
 
     args = parser.parse_args()
