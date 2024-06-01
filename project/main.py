@@ -41,10 +41,10 @@ def set_scene(args):
         psc.set_scene_lv(args)
     elif scene_id == 3:
         psc.set_scene_cube(args)
-    # elif scene_id == 4:
-    #     psc.set_scene_biventricular_ep_free_pulse(args)
-    # elif scene_id == 5:
-    #     psc.set_scene_biventricular_ep_scroll_pulse(args)
+    elif scene_id == 4:
+        psc.set_scene_biventricular_ep_free_pulse(args)
+    elif scene_id == 5:
+        psc.set_scene_biventricular_ep_scroll_pulse(args)
     # elif scene_id == 6:
     #     psc.set_scene_biventricular_em_free_pulse(args)
     # elif scene_id == 7:
@@ -69,11 +69,15 @@ if __name__ == "__main__":
                         )
     parser.add_argument('--body_name', type=str, default='whole_heart')
     parser.add_argument('--dyn_ix', type=bool, default=False, help='when it is True, open Dynamic interaction')
+    parser.add_argument('--debug', type=bool, default=False)
     args = parser.parse_args()
 
     assert 0 <= args.scene <= 7
 
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
+
+    cfg.Debug_Mode = args.debug
+    cfg.Debug_Mode = True
 
     set_scene(args)

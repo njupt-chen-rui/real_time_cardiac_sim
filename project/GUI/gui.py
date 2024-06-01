@@ -317,6 +317,16 @@ class Gui:
                 if cfg.Preset_Scene == 1:  # whole_heart
                     if ixop.iter_time % 80 == 0:
                         apply_stimulation_Sinoatrial_Node(body=self.geometry_model, tag_nid=1162, sti_val=1.5)
+                
+                elif cfg.Preset_Scene == 4:
+                    if ixop.iter_time == 0:
+                        apply_stimulation_S1(self.electrophysiology_model)
+                
+                elif cfg.Preset_Scene == 5:
+                    if ixop.iter_time == 0:
+                        apply_stimulation_S1(self.electrophysiology_model)
+                    elif ixop.iter_time == 290:
+                        apply_stimulation_S2(self.electrophysiology_model)
 
                 ixop.iter_time += 1
 
@@ -428,3 +438,17 @@ def apply_stimulation_Sinoatrial_Node(body: ti.template(), tag_nid: int, sti_val
         dis = tm.sqrt(dis)
         if dis < 1.0:
             body.Vm[i] = sti_val
+
+@ti.kernel
+def apply_stimulation_S1(elec_model: ti.template()):
+    vert = ti.static(elec_model.body.nodes)
+    for i in vert:
+        if elec_model.tag_s1[i] == 1:
+            elec_model.body.Vm[i] = 1.52
+
+@ti.kernel
+def apply_stimulation_S2(elec_model: ti.template()):
+    vert = ti.static(elec_model.body.nodes)
+    for i in vert:
+        if elec_model.tag_s2[i] == 1:
+            elec_model.body.Vm[i] = 1.55

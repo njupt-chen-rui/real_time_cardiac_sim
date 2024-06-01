@@ -35,6 +35,10 @@ class CameraParameter:
             self.camera_pos = tm.vec3(2.28, 22.6, 34.89)
             self.camera_lookat = tm.vec3(2.24, 22, 34)
             self.camera_up = tm.vec3(0., 1., 0.)
+        elif self.name == "biventricular":
+            self.camera_pos = tm.vec3(-10.50518621, 40.032794, 117.36565294)
+            self.camera_lookat = tm.vec3(-10.47637129, 39.56587387, 116.48182304)
+            self.camera_up = tm.vec3(0., 1., 0.)
 
     def set_camera_pos(self, x, y, z):
         self.camera_pos = tm.vec3(x, y, z)

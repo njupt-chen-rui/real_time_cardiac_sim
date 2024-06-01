@@ -61,6 +61,24 @@ class Electrophysiology:
         self.cg_Ad = ti.field(float, self.body.num_nodes)
         self.cg_epsilon = 1.0e-3
 
+        self.tag_s1 = ti.field(int, shape=self.body.num_nodes)
+        self.tag_s2 = ti.field(int, shape=self.body.num_nodes)
+        self.init_sim_tag()
+
+    @ti.kernel
+    def init_sim_tag(self):
+        pos = ti.static(self.body.nodes)
+        for i in pos:
+            if -24 <= pos[i].x <= -18.0 and -6.0 <= pos[i].y <= 0.0 and -3.0 <= pos[i].z <= 3.0:
+                self.tag_s1[i] = 1
+            else:
+                self.tag_s1[i] = 0
+
+            if 6.0 >= pos[i].x >= 0.0 >= pos[i].y >= -6.0 and 0.0 <= pos[i].z:
+                self.tag_s2[i] = 1
+            else:
+                self.tag_s2[i] = 0
+
     def restart(self):
         """ 重置电生理学模型 """
 
