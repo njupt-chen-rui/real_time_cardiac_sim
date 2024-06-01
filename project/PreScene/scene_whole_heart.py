@@ -17,7 +17,8 @@ def set_scene_whole_heart(args):
     num_per_tet_set_np = np.array(meshData['sum_tet_set'], dtype=int)
 
     # 是否使用各向异性
-    dyn_model = dyn.Dynamics_XPBD_SNH_Active_aniso(body=geo_model, num_pts_np=num_per_tet_set_np, tag_dirichlet_all_dir=flag_dirichlet, tag_neumann=flag_neumann)
+    # dyn_model = dyn.Dynamics_XPBD_SNH_Active_aniso(body=geo_model, num_pts_np=num_per_tet_set_np, tag_dirichlet_all_dir=flag_dirichlet, tag_neumann=flag_neumann)
+    dyn_model = dyn.Dynamics_XPBD_SNH_Active(body=geo_model, num_pts_np=num_per_tet_set_np, tag_dirichlet_all_dir=flag_dirichlet, tag_neumann=flag_neumann)
     save_path = args.save_path
 
     mygui = gui.Gui(geometry_model=geo_model, dynamics_model=dyn_model, body_name=body_name, save_path=save_path)
@@ -25,8 +26,12 @@ def set_scene_whole_heart(args):
 
     # 场景配置
     mygui.set_electrophysiology_model_type("ap")
+    mygui.interaction_operator.ele_op.sigma_f /= 10.0
+    mygui.interaction_operator.ele_op.sigma_s /= 10.0
+    mygui.interaction_operator.ele_op.sigma_n /= 10.0
     apply_stimulation_Sinoatrial_Node(body=geo_model, tag_nid=1162, sti_val=1.5)
     geo_model.update_color_Vm()
+
 
     # 开启gui渲染
     mygui.display()

@@ -228,10 +228,13 @@ class Gui:
             if ixop.is_restart:
                 ixop.isSolving = False
                 self.geometry_model.restart()
+                ixop.restart()
                 if ixop.ele_op.open:
                     self.electrophysiology_model.restart()
                 if ixop.dyn_op.open:
                     self.dynamics_model.restart()
+                if cfg.Preset_Scene == 1:
+                    self.restart_whole_heart()
                 if cfg.Preset_Scene == 3:
                     self.restart_cube()
 
@@ -312,6 +315,10 @@ class Gui:
             # --------------------------------------------------仿真-----------------------------------------------------
 
             if ixop.isSolving:  # 是否开启仿真
+                if cfg.Preset_Scene == 1:  # whole_heart
+                    if ixop.iter_time % 80 == 0:
+                        apply_stimulation_Sinoatrial_Node(body=self.geometry_model, tag_nid=1162, sti_val=1.5)
+
                 ixop.iter_time += 1
 
                 # 是否开启电生理仿真
@@ -327,6 +334,8 @@ class Gui:
                 # 是否开启动力学仿真
                 if ixop.dyn_op.open:
                     self.dynamics_model.update()
+                
+                
 
             # --------------------------------------------------仿真-----------------------------------------------------
 
@@ -397,9 +406,26 @@ class Gui:
         get_fiber(self.geometry_model)
         self.dynamics_model.flag_update_Ta = False
 
+    def restart_whole_heart(self):
+        self.set_electrophysiology_model_type("ap")
+        self.interaction_operator.ele_op.sigma_f /= 10.0
+        self.interaction_operator.ele_op.sigma_s /= 10.0
+        self.interaction_operator.ele_op.sigma_n /= 10.0
+
 
 @ti.kernel
 def apply_stimulation_with_selector(body: ti.template(), sec: ti.template(), sti_val: float):
     for i in body.nodes:
         if sec.is_in_rect[i]:
+            body.Vm[i] = sti_val
+
+
+@ti.kernel
+def apply_stimulation_Sinoatrial_Node(body: ti.template(), tag_nid: int, sti_val: float):
+    for i in body.nodes:
+        dis = (body.nodes[i][0] - body.nodes[tag_nid][0]) * (body.nodes[i][0] - body.nodes[tag_nid][0])\
+              + (body.nodes[i][1] - body.nodes[tag_nid][1]) * (body.nodes[i][1] - body.nodes[tag_nid][1])\
+              + (body.nodes[i][2] - body.nodes[tag_nid][2]) * (body.nodes[i][2] - body.nodes[tag_nid][2])
+        dis = tm.sqrt(dis)
+        if dis < 1.0:
             body.Vm[i] = sti_val

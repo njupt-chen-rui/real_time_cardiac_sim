@@ -172,6 +172,8 @@ class Dynamics_XPBD_SNH_Active:
         epsilon_0 = 1
         # epsilon_0 = 10
         k_Ta = 47.9  # kPa
+        if cfg.Preset_Scene == 1:
+            k_Ta *= 10.0
 
         # 更新顶点上的主动张力ver_Ta
         for i in self.pos:
