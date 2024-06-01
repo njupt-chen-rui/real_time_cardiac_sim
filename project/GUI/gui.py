@@ -318,11 +318,11 @@ class Gui:
                     if ixop.iter_time % 80 == 0:
                         apply_stimulation_Sinoatrial_Node(body=self.geometry_model, tag_nid=1162, sti_val=1.5)
                 
-                elif cfg.Preset_Scene == 4:
+                elif cfg.Preset_Scene == 4 or cfg.Preset_Scene == 6:
                     if ixop.iter_time == 0:
                         apply_stimulation_S1(self.electrophysiology_model)
                 
-                elif cfg.Preset_Scene == 5:
+                elif cfg.Preset_Scene == 5 or cfg.Preset_Scene == 7:
                     if ixop.iter_time == 0:
                         apply_stimulation_S1(self.electrophysiology_model)
                     elif ixop.iter_time == 290:

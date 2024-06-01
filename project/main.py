@@ -45,11 +45,10 @@ def set_scene(args):
         psc.set_scene_biventricular_ep_free_pulse(args)
     elif scene_id == 5:
         psc.set_scene_biventricular_ep_scroll_pulse(args)
-    # elif scene_id == 6:
-    #     psc.set_scene_biventricular_em_free_pulse(args)
-    # elif scene_id == 7:
-    #     psc.set_scene_biventricular_em_scroll_pulse(args) 
-
+    elif scene_id == 6:
+        psc.set_scene_biventricular_em_free_pulse(args)
+    elif scene_id == 7:
+        psc.set_scene_biventricular_em_scroll_pulse(args) 
 
 
 if __name__ == "__main__":
@@ -78,6 +77,5 @@ if __name__ == "__main__":
         os.makedirs(args.save_path)
 
     cfg.Debug_Mode = args.debug
-    cfg.Debug_Mode = True
 
     set_scene(args)

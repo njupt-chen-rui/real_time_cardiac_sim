@@ -1,4 +1,4 @@
 from project.PreScene.scene_whole_heart import set_scene_whole_heart
 from project.PreScene.scene_lv import set_scene_lv
 from project.PreScene.scene_cube import set_scene_cube
-from project.PreScene.scene_biventricular import set_scene_biventricular_ep_free_pulse, set_scene_biventricular_ep_scroll_pulse
+from project.PreScene.scene_biventricular import set_scene_biventricular_ep_free_pulse, set_scene_biventricular_ep_scroll_pulse, set_scene_biventricular_em_free_pulse, set_scene_biventricular_em_scroll_pulse
