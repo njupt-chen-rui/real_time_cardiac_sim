@@ -3,6 +3,7 @@ import taichi.math as tm
 import numpy as np
 import project.Geometry as geo
 import project.tool as tool
+import project.Configure as cfg
 
 
 @ti.data_oriented
@@ -100,7 +101,8 @@ class Body:
         self.bou_tag_dirichlet = ti.field(int, shape=self.num_nodes)
         self.bou_tag_dirichlet.from_numpy(bou_tag_dirichlet_np)
         # neumann boundary condition
-        self.bou_tag_neumann = ti.field(int, shape=self.num_nodes)
+        self.num_bou_neumann_face = len(bou_tag_neumann_np)
+        self.bou_tag_neumann = ti.Vector.field(3, int, shape=self.num_bou_neumann_face)
         self.bou_tag_neumann.from_numpy(bou_tag_neumann_np)
 
         # 计算网格表面, 用于辅助可视化

@@ -42,16 +42,35 @@ def read_body(meshData):
     if 'bou_tag_dirichlet' in meshData:
         bou_tag_dirichlet_np = np.array(meshData['bou_tag_dirichlet'], dtype=int)
         flag_dirichlet = True
+    elif 'bou_base_face' in meshData:
+        bou_tag_dirichlet_face_np = np.array(meshData['bou_base_face'], dtype=int)
+        bou_tag_dirichlet_np = np.zeros(len(pos_np), dtype=int)
+        get_bou_tag_dirichlet_from_face(bou_tag_dirichlet_np, bou_tag_dirichlet_face_np)
+        flag_dirichlet = True
     else:
         bou_tag_dirichlet_np = np.zeros(len(pos_np), dtype=int)
 
     # neumann bou
     flag_neumann = False
-    if 'bou_tag_neumann' in meshData:
-        bou_tag_neumann_np = np.array(meshData['bou_tag_neumann'], dtype=int)
+    if ('bou_endo_lv_face' in meshData) and ('bou_endo_rv_face' in meshData):
+        bou_endo_lv_face_np = np.array(meshData['bou_endo_lv_face'], dtype=int)
+        bou_endo_lv_face_np = bou_endo_lv_face_np.reshape((-1, 3))
+        bou_endo_rv_face_np = np.array(meshData['bou_endo_rv_face'], dtype=int)
+        bou_endo_rv_face_np = bou_endo_rv_face_np.reshape((-1, 3))
+        bou_neumann_face_np = np.append(bou_endo_lv_face_np, bou_endo_rv_face_np, axis=0)
         flag_neumann = True
+    elif 'bou_endo_lv_face' in meshData:
+        bou_endo_lv_face_np = np.array(meshData['bou_endo_lv_face'], dtype=int)
+        bou_endo_lv_face_np = bou_endo_lv_face_np.reshape((-1, 3))
+        bou_neumann_face_np = bou_endo_lv_face_np
+        flag_neumann = True
+    # elif 'bou_tag_neumann' in meshData:
+    #     bou_tag_neumann_np = np.array(meshData['bou_tag_neumann'], dtype=int)
+    #     flag_neumann = True
     else:
-        bou_tag_neumann_np = np.zeros(len(pos_np), dtype=int)
+        bou_neumann_face_np = np.zeros(3, dtype=int)
+        bou_neumann_face_np = bou_neumann_face_np.reshape((-1, 3))
+        
 
     # colormap
     colormap = tool.Colormap()
@@ -66,7 +85,12 @@ def read_body(meshData):
                  num_tet_set_np=num_tet_set_np,
                  tet_set_np=tet_set_np,
                  bou_tag_dirichlet_np=bou_tag_dirichlet_np,
-                 bou_tag_neumann_np=bou_tag_neumann_np
+                 bou_tag_neumann_np=bou_neumann_face_np
                  )
 
     return body, flag_dirichlet, flag_neumann
+
+def get_bou_tag_dirichlet_from_face(node_np, face_np):
+    for i in range(len(face_np)):
+        vid = face_np[i]
+        node_np[vid] = 1

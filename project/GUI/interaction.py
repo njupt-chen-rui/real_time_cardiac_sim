@@ -38,6 +38,7 @@ class Interaction:
         self.flag = True
 
         self.ele_op.restart()
+        self.dyn_op.restart()
 
 
 class ElectrophysiologyInteraction:

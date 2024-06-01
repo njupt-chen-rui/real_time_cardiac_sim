@@ -30,20 +30,6 @@ def set_usr_scene(args):
     mygui.display()
 
 
-# TODO:
-def set_scene_whole_heart(args):
-    from project.data.whole_heart import meshData
-    body_name = meshData['name']
-    geo_model, flag_dirichlet, flag_neumann = geo.read_body(meshData=meshData)
-    num_per_tet_set_np = np.array(meshData['sum_tet_set'], dtype=int)
-    dyn_model = dyn.Dynamics_XPBD_SNH_Active_aniso(body=geo_model, num_pts_np=num_per_tet_set_np)
-    save_path = args.save_path
-    mygui = gui.Gui(geometry_model=geo_model, dynamics_model=dyn_model, body_name=body_name, save_path=save_path)
-    mygui.interaction_operator.open_interaction_during_solving = args.dyn_ix
-
-    mygui.display()
-
-
 def set_scene(args):
     cfg.Preset_Scene = args.scene
     scene_id = args.scene
@@ -51,8 +37,19 @@ def set_scene(args):
         set_usr_scene(args)
     elif scene_id == 1:
         psc.set_scene_whole_heart(args)
+    elif scene_id == 2:
+        psc.set_scene_lv(args)
     elif scene_id == 3:
         psc.set_scene_cube(args)
+    # elif scene_id == 4:
+    #     psc.set_scene_biventricular_ep_free_pulse(args)
+    # elif scene_id == 5:
+    #     psc.set_scene_biventricular_ep_scroll_pulse(args)
+    # elif scene_id == 6:
+    #     psc.set_scene_biventricular_em_free_pulse(args)
+    # elif scene_id == 7:
+    #     psc.set_scene_biventricular_em_scroll_pulse(args) 
+
 
 
 if __name__ == "__main__":
@@ -60,12 +57,21 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--save_path', type=str, default='./res/')
-    parser.add_argument('--scene', type=int, default=0, help='0: User defined scenes; 1: whole_heart; 2: biventricular; 3: cube; 4: lv')
+    parser.add_argument('--scene', type=int, default=0, \
+                        help = '0: User defined scenes;\n \
+                                1: whole_heart; \
+                                2: lv; \
+                                3: cube; \
+                                4: biventricular_ep_free_pulse; \
+                                5: biventricular_ep_scroll_pulse; \
+                                6: biventricular_em_free_pulse; \
+                                7: biventricular_em_scroll_pulse' \
+                        )
     parser.add_argument('--body_name', type=str, default='whole_heart')
     parser.add_argument('--dyn_ix', type=bool, default=False, help='when it is True, open Dynamic interaction')
     args = parser.parse_args()
 
-    assert 0 <= args.scene <= 5
+    assert 0 <= args.scene <= 7
 
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)

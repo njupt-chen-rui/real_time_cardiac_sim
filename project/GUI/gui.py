@@ -1,12 +1,12 @@
 # TODO: 重写restart功能
 import taichi as ti
 import taichi.math as tm
-# from project.GUI import Interaction
 import project.Geometry as geo
 import project.Electrophysiology as elec
 import project.GUI as gui
 import project.tool as tool
 import project.Configure as cfg
+import project.Dynamics as dyn
 
 
 class Gui:
@@ -297,11 +297,10 @@ class Gui:
                             self.geometry_model.update_color_Vm()
 
             # 设计力学模型参数
-            self.dynamics_model.numSubsteps = ixop.dyn_op.numSubSteps
-            self.dynamics_model.numPosIters = ixop.dyn_op.numPosIters
-            self.dynamics_model.Youngs_modulus = ixop.dyn_op.Youngs_modulus
-            self.dynamics_model.Poisson_ratio = ixop.dyn_op.Poisson_ratio
-            self.dynamics_model.kappa = ixop.dyn_op.kappa
+            self.dynamics_model.update_time_step(dt=ixop.dt, numSubsteps=ixop.dyn_op.numSubSteps, numPosIters=ixop.dyn_op.numPosIters)
+            self.dynamics_model.update_Lame(ixop.dyn_op.Youngs_modulus, ixop.dyn_op.Poisson_ratio)
+            if isinstance(self.dynamics_model, dyn.Dynamics_XPBD_SNH_Active_aniso):
+                self.dynamics_model.update_kappa(ixop.dyn_op.kappa)
 
             # TODO: 施加外力
             if ixop.dyn_op.is_apply_ext_force:

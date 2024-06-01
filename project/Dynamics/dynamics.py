@@ -102,7 +102,11 @@ class Dynamics_XPBD_SNH_Active:
         self.tag_dirichlet_y_dir = tag_dirichlet_y_dir
         self.bou_dirichlet = self.body.bou_tag_dirichlet
         self.tag_neumann = tag_neumann
-        self.bou_neumann = self.body.bou_tag_neumann
+        self.bou_neumann_face = self.body.bou_tag_neumann
+        self.normal_bou_neumann_face = ti.Vector.field(3, float, shape=self.body.num_bou_neumann_face)
+        if tag_neumann:
+            self.get_bou_face_normal()
+        self.pressure = 15.0
 
         # 是否开启主动力更新
         self.flag_update_Ta = True
@@ -110,6 +114,32 @@ class Dynamics_XPBD_SNH_Active:
         # 外力的粒子抓取器抓取的粒子id
         self.grabId = -1
         self.grabInvMass = 0.0
+
+    @ti.kernel
+    def get_bou_face_normal(self):
+        for i in self.bou_neumann_face:
+            id0, id1, id2 = self.bou_neumann_face[i][0], self.bou_neumann_face[i][1], self.bou_neumann_face[i][2]
+            vert0, vert1, vert2 = self.pos[id0], self.pos[id1], self.pos[id2]
+            p1 = vert1 - vert0
+            p2 = vert2 - vert0
+            n1 = tm.cross(p1, p2)
+            self.normal_bou_neumann_face[i] = tm.normalize(n1)
+    
+    def update_Lame(self, Youngs_modulus, Poisson_ratio):
+        self.LameLa = Youngs_modulus * Poisson_ratio / ((1 + Poisson_ratio) * (1 - 2 * Poisson_ratio))
+        self.LameMu = Youngs_modulus / (2 * (1 + Poisson_ratio))
+        self.invLa = 1.0 / self.LameLa
+        self.invMu = 1.0 / self.LameMu
+
+    def update_time_step(self, dt, numSubsteps, numPosIters):
+        # 时间步长
+        self.dt = dt
+        # 子步数量
+        self.numSubsteps = numSubsteps
+        # 子步时间步长
+        self.h = self.dt / self.numSubsteps
+        # 迭代次数
+        self.numPosIters = numPosIters
 
     def restart(self):
         """ 重置动力学模型 """
@@ -205,12 +235,41 @@ class Dynamics_XPBD_SNH_Active:
         :return:
         """
 
-        self.preSolve()
+        if self.tag_neumann:
+            self.preSolve_with_neumann()
+        else:
+            self.preSolve_without_neumann()
+
+        # self.preSolve()
         self.solve_Gauss_Seidel_GPU()
         self.postSolve()
 
     @ti.kernel
-    def preSolve(self):
+    def preSolve_without_neumann(self):
+        """XPBD迭代中每次约束更新的前处理
+
+        :return:
+        """
+
+        pos, vel = ti.static(self.pos, self.vel)
+
+        # 外力
+        for i in self.f_ext:
+            self.f_ext[i] = self.gravity
+
+        # 仅考虑外力下的位置和速度更新
+        for i in self.pos:
+            self.prevPos[i] = pos[i]
+            vel[i] += self.h * self.f_ext[i] * self.invMass[i]
+            pos[i] += self.h * vel[i]
+
+        # Lagrange乘子初始化
+        for i in self.elements:
+            for j in ti.static(range(4)):
+                self.Lagrange_multiplier[i, j] = 0.0
+
+    @ti.kernel
+    def preSolve_with_neumann(self):
         """XPBD迭代中每次约束更新的前处理
 
         :return:
@@ -223,26 +282,17 @@ class Dynamics_XPBD_SNH_Active:
             self.f_ext[i] = self.gravity
 
         # TODO: Neumann边界条件（血液压力）
-        # for i in self.bou_endo_lv_face:
-        #     id0, id1, id2 = self.bou_endo_lv_face[i][0], self.bou_endo_lv_face[i][1], self.bou_endo_lv_face[i][2]
-        #     vert0, vert1, vert2 = self.pos[id0], self.pos[id1], self.pos[id2]
-        #     p1 = vert1 - vert0
-        #     p2 = vert2 - vert0
-        #     n1 = tm.cross(p1, p2)
-        #     self.normal_bou_endo_lv_face[i] = tm.normalize(n1)
-        #     self.f_ext[id0] += 1.0 * self.p_endo_lv * self.normal_bou_endo_lv_face[i] / 3.0
-        #     self.f_ext[id1] += 1.0 * self.p_endo_lv * self.normal_bou_endo_lv_face[i] / 3.0
-        #     self.f_ext[id2] += 1.0 * self.p_endo_lv * self.normal_bou_endo_lv_face[i] / 3.0
-        # for i in self.bou_endo_rv_face:
-        #     id0, id1, id2 = self.bou_endo_rv_face[i][0], self.bou_endo_rv_face[i][1], self.bou_endo_rv_face[i][2]
-        #     vert0, vert1, vert2 = self.pos[id0], self.pos[id1], self.pos[id2]
-        #     p1 = vert1 - vert0
-        #     p2 = vert2 - vert0
-        #     n1 = tm.cross(p1, p2)
-        #     self.normal_bou_endo_rv_face[i] = tm.normalize(n1)
-        #     self.f_ext[id0] += 1.0 * self.p_endo_rv * self.normal_bou_endo_rv_face[i] / 3.0
-        #     self.f_ext[id1] += 1.0 * self.p_endo_rv * self.normal_bou_endo_rv_face[i] / 3.0
-        #     self.f_ext[id2] += 1.0 * self.p_endo_rv * self.normal_bou_endo_rv_face[i] / 3.0
+        for i in self.bou_neumann_face:
+            id0, id1, id2 = self.bou_neumann_face[i][0], self.bou_neumann_face[i][1], self.bou_neumann_face[i][2]
+            vert0, vert1, vert2 = self.pos[id0], self.pos[id1], self.pos[id2]
+            p1 = vert1 - vert0
+            p2 = vert2 - vert0
+            n1 = tm.cross(p1, p2)
+            self.normal_bou_neumann_face[i] = tm.normalize(n1)
+            self.f_ext[id0] += 1.0 * self.pressure * self.normal_bou_neumann_face[i] / 3.0
+            self.f_ext[id1] += 1.0 * self.pressure * self.normal_bou_neumann_face[i] / 3.0
+            self.f_ext[id2] += 1.0 * self.pressure * self.normal_bou_neumann_face[i] / 3.0
+
 
         # 仅考虑外力下的位置和速度更新
         for i in self.pos:
@@ -640,6 +690,10 @@ class Dynamics_XPBD_SNH_Active_aniso(Dynamics_XPBD_SNH_Active):
                                                              tag_neumann=tag_neumann)
 
         # 各向异性弹性参数
+        self.kappa = kappa
+        self.inv_kappa = 1.0 / (kappa + 1e-12)
+
+    def update_kappa(self, kappa):
         self.kappa = kappa
         self.inv_kappa = 1.0 / (kappa + 1e-12)
 
